@@ -1,0 +1,1098 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" data-pwa>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" data-pwa>
+<meta name="apple-mobile-web-app-capable" content="yes" data-pwa>
+<meta name="mobile-web-app-capable" content="yes" data-pwa>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" data-pwa>
+<meta name="apple-mobile-web-app-title" content="Baca Kamera" data-pwa>
+<meta name="theme-color" content="#0f1217" data-pwa>
+<link rel="manifest" href="manifest.webmanifest" data-pwa>
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" data-pwa>
+<link rel="icon" type="image/png" href="icons/icon-192.png" data-pwa>
+<style data-pwa>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+<title>Baca Kamera</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: satu layar seperti aplikasi — kepala, area kerja yang digulir, tab di bawah;
+   teleprompter menutup layar penuh dengan garis baca dekat kamera depan. */
+:root{
+  --ink:#0f1217; --panel:#171b22; --raise:#1f242d; --line:#2a303b;
+  --fg:#eef0f3; --muted:#959dac; --cue:#f4b63f; --cue-ink:#1f1604;
+  --rec:#ff453a; --ok:#4cc38a; --tp-fg:#ffffff; --tp-bg:#000000;
+  --scrim:rgba(0,0,0,.62); --glass:rgba(15,18,23,.9);
+  --f-display:"Bricolage Grotesque", ui-rounded, system-ui, -apple-system, sans-serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r:14px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{height:100%;background:var(--ink)}
+body{height:100%;margin:0;background:var(--ink);color:var(--fg);font:16px/1.5 var(--f-body);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--cue);outline-offset:2px}
+
+.app{height:100%;display:flex;flex-direction:column;max-width:680px;margin:0 auto}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px 8px}
+.brand{display:flex;align-items:center;gap:10px;font:800 22px/1 var(--f-display);letter-spacing:-.01em}
+.tally{width:10px;height:10px;border-radius:50%;background:var(--rec);box-shadow:0 0 0 3px rgba(255,69,58,.18)}
+.engine{font:500 11px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 10px;white-space:nowrap;background:none}
+.engine b{color:var(--cue);font-weight:500}
+main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-block:4px 28px}
+nav.tabs{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);background:var(--ink)}
+nav.tabs button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 6px;color:var(--muted);font-size:12px;min-height:54px}
+nav.tabs button svg{width:24px;height:24px}
+nav.tabs button[aria-selected="true"]{color:var(--cue)}
+
+.view{display:grid;gap:22px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+h1{font-size:28px;line-height:1.1;font-weight:800;letter-spacing:-.015em}
+h2{font-size:20px;font-weight:800}
+.lede{color:var(--muted);margin:6px 0 0;max-width:60ch}
+.field{display:grid;gap:9px}
+.lbl{font:500 11px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:8px 13px;font-size:15px;line-height:1.2}
+.chip[aria-pressed="true"]{background:var(--cue);color:var(--cue-ink);border-color:var(--cue);font-weight:700}
+input[type=text],input[type=password],select,textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:16px}
+textarea{resize:vertical;line-height:1.55}
+input::placeholder,textarea::placeholder{color:#6b7382}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--raise);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:15px;min-height:44px}
+.btn.primary{background:var(--cue);color:var(--cue-ink);border-color:var(--cue);font-weight:700;font-size:17px;padding:14px 18px;border-radius:var(--r)}
+.btn.block{width:100%}
+.btn.ghost{background:none}
+.btn.danger{color:var(--rec)}
+.btn[disabled]{opacity:.55;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row > .grow{flex:1;min-width:0}
+
+.ideas{display:grid;gap:12px}
+.idea{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:8px}
+.idea .fmt{font:500 11px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--cue)}
+.idea h3{font-size:19px;line-height:1.25;font-weight:800}
+.idea .hook{margin:0;color:#c9ced6;border-left:2px solid var(--line);padding-left:10px}
+.idea .foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.meta{font:500 12px/1.2 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.status{color:var(--muted);font-size:14px;display:flex;align-items:center;gap:8px}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--cue);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.list{display:grid;gap:10px}
+.item{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-align:left;width:100%}
+.item .t{font-weight:700;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .grow{flex:1;min-width:0}
+.item .chev{color:var(--muted)}
+.tag{font:500 10px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--cue);border:1px solid rgba(244,182,63,.4);border-radius:6px;padding:3px 5px;margin-left:6px;vertical-align:2px}
+.empty{color:var(--muted);text-align:center;padding:24px 8px;border:1px dashed var(--line);border-radius:14px}
+
+.editor{display:grid;gap:12px}
+.editor textarea{min-height:52vh}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.hint code{font-family:var(--f-mono);color:var(--fg);font-size:12px}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:14px}
+.set{display:grid;gap:8px}
+.set-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.set-row .val{font-family:var(--f-mono);font-size:13px;color:var(--cue);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--cue)}
+.switch{appearance:none;width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;flex:none;cursor:pointer;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch:checked{background:var(--ok)}
+.switch:checked::after{transform:translateX(20px)}
+ol.steps{margin:0;padding-left:20px;display:grid;gap:6px;color:#c9ced6}
+
+/* ---------- Teleprompter ---------- */
+.tp{position:fixed;inset:0;z-index:50;background:var(--tp-bg);color:var(--tp-fg);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.tp video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.tp .scrim{position:absolute;inset:0;background:var(--scrim);pointer-events:none}
+.stage{position:absolute;inset:0;overflow:hidden}
+.stage.mirror{transform:scaleX(-1)}
+.tp-text{position:absolute;left:0;right:0;top:0;padding:0 max(24px,env(safe-area-inset-right,0px)) 0 max(24px,env(safe-area-inset-left,0px));font-family:var(--f-body);font-weight:700;line-height:1.36;will-change:transform}
+.tp-text.center{text-align:center}
+.tp-text p{margin:0 0 .5em}
+.tp-text .gap{height:.5em}
+.tp-text .sec{font:500 .36em/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--cue);margin:1.4em 0 .7em}
+.tp-text .sec:first-child{margin-top:0}
+.tp-text .dir{font-weight:400;font-style:italic;color:var(--muted);font-size:.62em}
+.tp-text .end{font:500 .4em/1 var(--f-mono);letter-spacing:.14em;color:var(--muted);text-align:center;margin-top:1.6em}
+.fade{position:absolute;left:0;right:0;top:0;pointer-events:none;background:linear-gradient(to bottom,var(--tp-bg) 0%,rgba(0,0,0,.55) 75%,rgba(0,0,0,0) 100%)}
+.tp.cam .fade{background:linear-gradient(to bottom,rgba(0,0,0,.7),rgba(0,0,0,0))}
+.readline{position:absolute;left:0;right:0;height:0;pointer-events:none}
+.readline::before,.readline::after{content:"";position:absolute;top:-9px;border:9px solid transparent}
+.readline::before{left:4px;border-left:12px solid var(--cue)}
+.readline::after{right:4px;border-right:12px solid var(--cue)}
+.tp-top{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 6px) max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));transition:opacity .35s}
+.tp-bot{position:absolute;bottom:0;left:0;right:0;display:grid;gap:12px;padding:12px max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 12px) max(14px,env(safe-area-inset-left,0px));background:var(--glass);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);transition:opacity .35s,transform .35s}
+.tp.immersive .tp-top,.tp.immersive .tp-bot{opacity:0;pointer-events:none}
+.tp.immersive .tp-bot{transform:translateY(16px)}
+.tp-progress{position:absolute;left:0;top:0;height:3px;background:var(--cue);width:0}
+.iconbtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--glass);display:grid;place-items:center;flex:none;color:var(--tp-fg)}
+.iconbtn svg{width:22px;height:22px}
+.clock{font:500 13px/1 var(--f-mono);font-variant-numeric:tabular-nums;color:var(--tp-fg);background:var(--glass);border:1px solid var(--line);border-radius:999px;padding:8px 12px;display:flex;gap:10px;align-items:center}
+.clock .rec{color:var(--rec);display:none;align-items:center;gap:6px}
+.tp.recording .clock .rec{display:flex}
+.rec i{width:8px;height:8px;border-radius:50%;background:var(--rec);animation:blink 1s steps(2,start) infinite}
+@keyframes blink{50%{opacity:.2}}
+.ctl{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper.r{justify-content:flex-end}
+.stepper button{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--raise);font-weight:700;font-size:18px;color:var(--tp-fg)}
+.stepper .v{min-width:44px;text-align:center;font:500 13px/1.1 var(--f-mono);font-variant-numeric:tabular-nums}
+.stepper .v small{display:block;font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-top:2px}
+.play{width:68px;height:68px;border-radius:50%;border:0;background:var(--cue);color:var(--cue-ink);display:grid;place-items:center}
+.play svg{width:30px;height:30px}
+.toggles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tg{background:var(--raise);border:1px solid var(--line);border-radius:12px;min-height:46px;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--tp-fg);padding:4px}
+.tg svg{width:18px;height:18px}
+.tg[aria-pressed="true"]{border-color:var(--cue);color:var(--cue)}
+.tg.recbtn[aria-pressed="true"]{border-color:var(--rec);color:var(--rec)}
+.count{position:absolute;inset:0;display:grid;place-items:center;font:800 34vw/1 var(--f-display);color:var(--cue);background:rgba(0,0,0,.35);pointer-events:none}
+
+.sheet{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+.sheet .box{width:100%;max-width:560px;background:var(--panel);border-top:1px solid var(--line);border-radius:20px 20px 0 0;display:grid;gap:12px;padding-block:18px calc(env(safe-area-inset-bottom,0px) + 18px)}
+.sheet video{width:100%;max-height:48vh;border-radius:12px;background:#000;max-width:100%}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:90;background:var(--fg);color:var(--ink);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:700;max-width:calc(100% - 32px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top gut">
+    <div class="brand"><span class="tally" aria-hidden="true"></span>Baca Kamera</div>
+    <button class="engine" id="enginePill" type="button" title="Mesin ide">Mesin: <b id="engineName">Bawaan</b></button>
+  </header>
+
+  <main id="main" class="gut">
+    <!-- IDE -->
+    <section class="view" id="v-ide" aria-label="Ide konten">
+      <div>
+        <h1>Cari ide, dapat naskah, langsung baca.</h1>
+        <p class="lede">Pilih niche dan gaya, ketuk satu ide, lalu naskahnya siap dibaca di teleprompter.</p>
+      </div>
+      <div class="field"><span class="lbl">Niche</span><div class="chips" id="cNiche"></div></div>
+      <div class="field">
+        <label class="lbl" for="topic">Topik spesifik (opsional)</label>
+        <input type="text" id="topic" placeholder="mis. jualan kopi susu, skincare remaja, nabung buat nikah" autocomplete="off">
+      </div>
+      <div class="field"><span class="lbl">Platform</span><div class="chips" id="cPlat"></div></div>
+      <div class="field"><span class="lbl">Durasi</span><div class="chips" id="cDur"></div></div>
+      <div class="field"><span class="lbl">Gaya bicara</span><div class="chips" id="cTone"></div></div>
+      <button class="btn primary block" id="btnIdeas" type="button">Beri 5 ide</button>
+      <div class="status" id="ideaStatus" hidden></div>
+      <div class="ideas" id="ideas" aria-live="polite"></div>
+    </section>
+
+    <!-- NASKAH -->
+    <section class="view" id="v-naskah" aria-label="Naskah" hidden>
+      <div id="listWrap" class="view">
+        <div class="row">
+          <div class="grow"><h1>Naskah</h1><p class="lede">Tersimpan otomatis di iPhone ini.</p></div>
+          <button class="btn" id="btnNew" type="button">+ Baru</button>
+        </div>
+        <div class="list" id="list"></div>
+      </div>
+      <div id="editor" class="editor" hidden>
+        <div class="row">
+          <button class="btn ghost" id="btnBack" type="button">‹ Daftar</button>
+          <span class="grow"></span>
+          <span class="meta" id="edStats">0 kata</span>
+          <button class="btn primary" id="btnReadTop" type="button" style="font-size:15px;padding:10px 14px">▶ Baca</button>
+        </div>
+        <label class="lbl" for="edTitle">Judul</label>
+        <input type="text" id="edTitle" placeholder="Judul video">
+        <label class="lbl" for="edBody">Naskah</label>
+        <textarea id="edBody" placeholder="Tulis atau tempel naskah di sini…"></textarea>
+        <p class="hint"><code>## HOOK</code> jadi penanda bagian, teks dalam <code>(kurung)</code> jadi arahan kecil yang tidak perlu dibaca.</p>
+        <div class="status" id="edStatus" hidden></div>
+        <button class="btn primary block" id="btnRead" type="button">▶ Mulai baca</button>
+        <div class="row">
+          <button class="btn grow" id="btnRegen" type="button">Tulis ulang</button>
+          <button class="btn grow" id="btnCopy" type="button">Salin</button>
+          <button class="btn grow danger" id="btnDel" type="button">Hapus</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ATUR -->
+    <section class="view" id="v-atur" aria-label="Pengaturan" hidden>
+      <div><h1>Pengaturan</h1></div>
+
+      <div class="card">
+        <h2>Mesin ide &amp; naskah</h2>
+        <p class="hint" id="engineNote"></p>
+        <div class="set-row"><label for="setOffline">Pakai ide bawaan saja (tanpa internet, gratis)</label><input type="checkbox" class="switch" id="setOffline"></div>
+        <div id="apiBox" class="set">
+          <label class="lbl" for="setKey">API key Anthropic (opsional)</label>
+          <input type="password" id="setKey" placeholder="sk-ant-…" autocomplete="off">
+          <label class="lbl" for="setModel">Model</label>
+          <select id="setModel">
+            <option value="claude-opus-5-5">Claude Opus 5.5 — paling bagus</option>
+            <option value="claude-sonnet-5-5">Claude Sonnet 5.5 — cepat</option>
+            <option value="claude-haiku-5-5">Claude Haiku 5.5 — paling hemat</option>
+          </select>
+          <p class="hint">Kunci disimpan hanya di perangkat ini dan dikirim langsung ke Anthropic. Tanpa kunci, aplikasi memakai bank ide bawaan.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Teleprompter</h2>
+        <div class="set"><div class="set-row"><label for="setFont">Ukuran huruf</label><span class="val" id="vFont"></span></div><input type="range" id="setFont" min="24" max="80" step="2"></div>
+        <div class="set"><div class="set-row"><label for="setSpeed">Kecepatan awal</label><span class="val" id="vSpeed"></span></div><input type="range" id="setSpeed" min="1" max="15" step="0.5"></div>
+        <div class="set-row"><label for="setCount">Hitung mundur</label><select id="setCount" style="width:auto"><option value="0">Tidak ada</option><option value="3">3 detik</option><option value="5">5 detik</option></select></div>
+        <div class="set-row"><label for="setAlign">Teks rata tengah</label><input type="checkbox" class="switch" id="setAlign"></div>
+        <div class="set-row"><label for="setMirror">Cermin (untuk kaca teleprompter)</label><input type="checkbox" class="switch" id="setMirror"></div>
+      </div>
+
+      <div class="card">
+        <h2>Pasang di iPhone</h2>
+        <ol class="steps">
+          <li>Buka halaman ini di <b>Safari</b>.</li>
+          <li>Ketuk tombol <b>Bagikan</b> (kotak dengan panah ke atas).</li>
+          <li>Pilih <b>Tambahkan ke Layar Utama</b>, lalu <b>Tambah</b>.</li>
+          <li>Buka <b>Baca Kamera</b> dari Layar Utama. Izinkan kamera dan mikrofon saat pertama kali merekam.</li>
+        </ol>
+        <p class="hint">Tips iPhone 15: garis baca diletakkan dekat Dynamic Island supaya mata tetap terlihat menatap kamera.</p>
+      </div>
+
+      <div class="card">
+        <h2>Data</h2>
+        <button class="btn danger" id="btnWipe" type="button">Hapus semua naskah</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs gut" role="tablist">
+    <button type="button" role="tab" data-tab="ide" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2V16h5v-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z"/></svg>Ide</button>
+    <button type="button" role="tab" data-tab="naskah" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Naskah</button>
+    <button type="button" role="tab" data-tab="atur" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Atur</button>
+  </nav>
+</div>
+
+<!-- TELEPROMPTER -->
+<div class="tp" id="tp" hidden>
+  <video id="tpVideo" playsinline muted autoplay hidden></video>
+  <div class="scrim" id="tpScrim" hidden></div>
+  <div class="stage" id="stage">
+    <div class="tp-text" id="tpText"></div>
+    <div class="fade" id="tpFade"></div>
+  </div>
+  <div class="readline" id="readline"></div>
+  <div class="tp-progress" id="tpProg"></div>
+  <div class="count" id="tpCount" hidden></div>
+  <div class="tp-top">
+    <button class="iconbtn" id="tpClose" type="button" aria-label="Tutup teleprompter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div class="clock"><span class="rec"><i></i>REC <span id="recTime">00:00</span></span><span id="tpTime">00:00 / 00:00</span></div>
+    <button class="iconbtn" id="tpRewind" type="button" aria-label="Kembali ke awal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6"/><path d="M4 4v4.6h4.6"/></svg></button>
+  </div>
+  <div class="tp-bot" id="tpBot">
+    <div class="ctl">
+      <div class="stepper"><button type="button" id="spdDn" aria-label="Pelankan">−</button><span class="v"><span id="spdV">5</span><small>Kecepatan</small></span><button type="button" id="spdUp" aria-label="Percepat">+</button></div>
+      <button class="play" id="tpPlay" type="button" aria-label="Putar"><svg id="icoPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg><svg id="icoPause" viewBox="0 0 24 24" fill="currentColor" hidden><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg></button>
+      <div class="stepper r"><button type="button" id="fntDn" aria-label="Perkecil huruf">A−</button><span class="v"><span id="fntV">40</span><small>Huruf</small></span><button type="button" id="fntUp" aria-label="Perbesar huruf">A+</button></div>
+    </div>
+    <div class="toggles">
+      <button class="tg" type="button" id="tgMirror" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 7l-5 5 5 5V7zM16 7l5 5-5 5V7z"/></svg>Cermin</button>
+      <button class="tg" type="button" id="tgAlign" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M7 10h10M4 14h16M7 18h10"/></svg>Tengah</button>
+      <button class="tg" type="button" id="tgCam" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg>Kamera</button>
+      <button class="tg recbtn" type="button" id="tgRec" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="currentColor"/></svg>Rekam</button>
+    </div>
+  </div>
+</div>
+
+<!-- HASIL REKAMAN -->
+<div class="sheet" id="sheet" hidden>
+  <div class="box gut">
+    <h2>Hasil rekaman</h2>
+    <video id="clip" playsinline controls></video>
+    <button class="btn primary block" id="clipSave" type="button">Simpan ke Foto / Bagikan</button>
+    <div class="row"><button class="btn grow" id="clipRetake" type="button">Rekam ulang</button><button class="btn grow" id="clipClose" type="button">Tutup</button></div>
+    <p class="hint">Di menu Bagikan, pilih <b>Simpan Video</b> untuk menaruhnya di app Foto.</p>
+  </div>
+</div>
+
+<!-- BANTUAN KAMERA -->
+<div class="sheet" id="camHelp" hidden>
+  <div class="box gut">
+    <h2>Kamera belum bisa dipakai di sini</h2>
+    <p class="hint" id="camWhy" style="font-size:15px;color:var(--fg)"></p>
+    <ol class="steps">
+      <li>Buka alamat aplikasi Baca Kamera (https://…) di <b>Safari</b>.</li>
+      <li>Ketuk <b>Bagikan</b> › <b>Tambahkan ke Layar Utama</b>.</li>
+      <li>Buka dari ikon di Layar Utama, ketuk <b>Rekam</b>, lalu <b>Izinkan</b> kamera dan mikrofon.</li>
+    </ol>
+    <p class="hint">Naskah yang Anda tulis di sini tidak ikut pindah. Salin dulu lewat tombol <b>Salin</b> di editor, lalu tempel di aplikasi.</p>
+    <button class="btn primary block" id="camHelpOk" type="button">Mengerti</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+'use strict';
+/* ================= util ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const lc = s => (s.length > 1 && s[1] === s[1].toLowerCase()) ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+const NUMW = ['nol','satu','dua','tiga','empat','lima','enam','tujuh'];
+const ORD = ['pertama','kedua','ketiga','keempat','kelima','keenam','ketujuh'];
+const listJoin = a => a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + (a.length > 2 ? ',' : '') + ' dan ' + a[a.length - 1];
+const words = s => (s.replace(/^##.*$/gm, '').replace(/\([^)]*\)/g, '').match(/[^\s]+/g) || []).length;
+const WPS = 2.5; // ±150 kata per menit
+const fmtTime = s => { s = Math.max(0, Math.round(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+let toastT;
+function toast(msg, ms = 2600) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, ms); }
+
+/* ================= penyimpanan ================= */
+const KEY = 'bacakamera.v1';
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { S = null; }
+if (!S || typeof S !== 'object') S = {};
+S.scripts = Array.isArray(S.scripts) ? S.scripts : [];
+S.settings = Object.assign({ speed: 5, font: 40, countdown: 3, mirror: false, center: false, apiKey: '', model: 'claude-opus-5-5', offline: false }, S.settings || {});
+S.sel = Object.assign({ niche: 'bisnis', topic: '', plat: 'short', dur: 60, tone: 'santai' }, S.sel || {});
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
+
+/* ================= bank ide bawaan ================= */
+// tiap tips: [judul tips, penjelasan, kesalahan yang sering terjadi]
+const NICHES = {
+  bisnis: { label: 'Bisnis & jualan', audience: 'kamu yang jualan online', activity: 'jualan online', goal: 'menaikkan orderan', problem: 'toko sepi pembeli',
+    past: 'Dulu tokoku sepi banget, sehari cuma satu dua orderan.', win: 'orderan tokoku naik',
+    tips: [
+      ['Foto produk pakai cahaya jendela', 'Cahaya alami dari samping bikin produk terlihat jelas dan lebih mahal. Tidak perlu lampu studio.', 'memotret produk di ruangan yang gelap'],
+      ['Tulis manfaat, bukan cuma spesifikasi', 'Orang tidak membeli bahan katun tiga puluh s. Mereka membeli kaos yang adem dipakai seharian.', 'cuma menulis spesifikasi produk'],
+      ['Balas chat dalam lima menit', 'Pembeli yang dibalas cepat jauh lebih mungkin jadi transaksi. Siapkan template jawaban untuk pertanyaan yang sering muncul.', 'membiarkan chat calon pembeli menunggu berjam-jam'],
+      ['Minta testimoni dari pembeli yang puas', 'Testimoni asli adalah bukti paling kuat. Minta foto produk saat barang sudah diterima.', 'tidak pernah meminta ulasan'],
+      ['Fokus ke satu produk andalan', 'Satu produk yang dikenal orang lebih kuat daripada seratus produk yang biasa saja.', 'menjual terlalu banyak produk sekaligus'],
+      ['Posting konsisten di jam ramai', 'Coba jam makan siang dan jam tujuh sampai sembilan malam, lalu lihat jam mana yang paling banyak interaksinya.', 'posting hanya kalau sedang ingat'],
+    ] },
+  keuangan: { label: 'Keuangan', audience: 'anak muda yang gajinya cepat habis', activity: 'mengatur gaji', goal: 'bisa menabung tiap bulan', problem: 'gaji habis sebelum akhir bulan',
+    past: 'Dulu gajiku selalu habis sebelum tanggal dua puluh.', win: 'aku akhirnya bisa menabung tiap bulan',
+    tips: [
+      ['Bayar dirimu sendiri dulu', 'Begitu gajian, langsung pindahkan sepuluh sampai dua puluh persen ke rekening tabungan yang terpisah.', 'menabung dari sisa uang di akhir bulan'],
+      ['Catat pengeluaran selama tiga puluh hari', 'Kamu tidak bisa memperbaiki yang tidak kamu ukur. Catat semuanya, termasuk jajan kecil.', 'tidak tahu uangnya pergi ke mana'],
+      ['Siapkan dana darurat', 'Targetkan tiga sampai enam kali pengeluaran bulanan, dan simpan di tempat yang mudah dicairkan.', 'tidak punya dana darurat sama sekali'],
+      ['Hindari cicilan untuk barang konsumtif', 'Paylater untuk barang yang nilainya turun hanya memindahkan masalah ke bulan depan.', 'memakai paylater untuk gaya hidup'],
+      ['Tunggu 48 jam sebelum belanja', 'Untuk barang yang bukan kebutuhan, tunda dua hari. Sering kali keinginannya hilang sendiri.', 'belanja impulsif setiap ada diskon'],
+      ['Mulai investasi dari nominal kecil', 'Reksa dana pasar uang bisa dimulai dari sepuluh ribu rupiah. Yang penting rutin, bukan besar.', 'menunggu uang banyak baru mulai investasi'],
+    ] },
+  kuliner: { label: 'Kuliner & resep', audience: 'kamu yang suka masak di rumah', activity: 'masak di rumah', goal: 'bikin masakan rumahan seenak restoran', problem: 'masakan terasa hambar',
+    past: 'Dulu masakanku selalu terasa hambar, padahal bumbunya sudah banyak.', win: 'masakanku dipuji satu rumah',
+    tips: [
+      ['Panaskan wajan sampai benar-benar panas', 'Bahan yang masuk ke wajan dingin akan mengeluarkan air dan jadi lembek. Tunggu sampai wajan panas, baru masukkan minyak.', 'langsung memasukkan bahan ke wajan yang belum panas'],
+      ['Tumis bumbu sampai benar-benar matang', 'Bumbu halus yang belum matang bikin rasa langu. Tumis sampai minyaknya terpisah dan aromanya harum.', 'menumis bumbu cuma sebentar'],
+      ['Beri garam sedikit demi sedikit', 'Bumbui di beberapa tahap dan cicipi setiap tahap. Menambah selalu lebih mudah daripada mengurangi.', 'menabur garam sekaligus di akhir'],
+      ['Jangan memenuhi wajan', 'Masak dalam beberapa tahap supaya bahan benar-benar tergoreng, bukan terebus.', 'memasukkan semua bahan sekaligus'],
+      ['Tambahkan rasa asam di akhir', 'Sedikit perasan jeruk nipis di akhir membuat rasa masakan lebih hidup.', 'melupakan rasa asam'],
+      ['Diamkan daging sebelum dipotong', 'Tunggu sekitar lima menit supaya cairannya tidak keluar semua dan daging tetap juicy.', 'langsung memotong daging yang baru diangkat'],
+    ] },
+  produktif: { label: 'Produktivitas', audience: 'pelajar dan pekerja yang gampang menunda', activity: 'belajar dan bekerja', goal: 'lebih fokus dan cepat selesai', problem: 'kerjaan menumpuk',
+    past: 'Dulu aku jago banget menunda, deadline selalu dikerjakan semalam suntuk.', win: 'kerjaanku selesai jauh lebih cepat',
+    tips: [
+      ['Pakai teknik Pomodoro', 'Fokus dua puluh lima menit, istirahat lima menit. Otak lebih mudah mulai kalau tahu ada jeda.', 'memaksa fokus berjam-jam tanpa jeda'],
+      ['Kerjakan tugas tersulit di pagi hari', 'Energi dan fokus biasanya paling tinggi di awal hari. Simpan pekerjaan ringan untuk sore.', 'menghabiskan pagi untuk membalas chat'],
+      ['Taruh HP di ruangan lain', 'Penelitian menunjukkan HP yang terlihat saja sudah mengurangi fokus. Jauhkan dari jangkauan.', 'bekerja dengan HP di samping laptop'],
+      ['Pecah tugas besar jadi langkah sepuluh menit', 'Tugas yang terasa besar bikin malas mulai. Tulis langkah pertama yang bisa selesai dalam sepuluh menit.', 'menulis to-do yang terlalu besar'],
+      ['Tulis tiga prioritas setiap malam', 'Besok paginya kamu tidak perlu berpikir mau mulai dari mana.', 'memulai hari tanpa rencana'],
+      ['Jelaskan ulang apa yang kamu pelajari', 'Kalau kamu bisa menjelaskannya dengan bahasa sederhana, berarti kamu benar-benar paham.', 'cuma membaca ulang catatan'],
+    ] },
+  teknologi: { label: 'Teknologi & HP', audience: 'pengguna iPhone dan Android', activity: 'pakai HP sehari-hari', goal: 'bikin HP lebih awet dan kencang', problem: 'baterai cepat habis dan memori penuh',
+    past: 'Dulu HP-ku jam dua siang sudah lowbat, memorinya juga penuh terus.', win: 'HP-ku jadi awet seharian',
+    tips: [
+      ['Matikan refresh aplikasi di latar belakang', 'Di iPhone, buka Pengaturan, Umum, Refresh App di Latar. Matikan untuk aplikasi yang tidak penting.', 'membiarkan semua aplikasi aktif di latar belakang'],
+      ['Hapus aplikasi yang tidak dipakai sebulan', 'Aplikasi yang tidak dipakai tetap memakan memori dan kadang tetap berjalan.', 'menyimpan puluhan aplikasi yang tidak pernah dibuka'],
+      ['Cadangkan foto lalu kosongkan galeri', 'Foto dan video adalah pemakan memori terbesar. Cadangkan ke cloud atau laptop secara rutin.', 'menyimpan semua video di galeri'],
+      ['Turunkan kecerahan dan pakai mode gelap', 'Layar adalah pemakai baterai terbesar. Kecerahan otomatis dan mode gelap sangat membantu.', 'memakai kecerahan maksimal sepanjang hari'],
+      ['Update sistem secara rutin', 'Pembaruan sistem membawa perbaikan keamanan dan sering kali efisiensi baterai.', 'menunda update berbulan-bulan'],
+      ['Aktifkan verifikasi dua langkah', 'Akun yang diretas jauh lebih repot daripada HP lemot. Aktifkan untuk email dan media sosial.', 'memakai satu kata sandi untuk semua akun'],
+    ] },
+  kecantikan: { label: 'Skincare', audience: 'kamu yang baru mulai skincare', activity: 'pakai skincare', goal: 'punya kulit sehat dan cerah', problem: 'kulit kusam dan berjerawat',
+    past: 'Dulu kulitku kusam dan jerawatan, padahal produknya sudah bertumpuk.', win: 'kulitku jauh lebih tenang',
+    tips: [
+      ['Pakai sunscreen setiap hari', 'Bahkan saat di dalam ruangan atau cuaca mendung. Ulangi setiap beberapa jam kalau beraktivitas di luar.', 'memakai sunscreen hanya saat ke pantai'],
+      ['Mulai dari tiga langkah dasar', 'Sabun cuci muka, pelembap, dan sunscreen. Kuasai ini dulu sebelum menambah produk lain.', 'membeli sepuluh produk sekaligus'],
+      ['Coba satu produk baru dalam satu waktu', 'Kalau kulit bereaksi, kamu tahu persis produk mana penyebabnya.', 'mencoba banyak produk baru bersamaan'],
+      ['Lakukan uji tempel dulu', 'Oleskan sedikit di belakang telinga atau rahang selama beberapa hari sebelum dipakai ke seluruh wajah.', 'langsung memakai produk baru ke seluruh wajah'],
+      ['Bersihkan wajah dua tahap setelah makeup', 'Pakai pembersih berbahan minyak dulu, lalu sabun cuci muka, supaya sisa makeup terangkat.', 'tidur tanpa menghapus makeup'],
+      ['Jangan memencet jerawat', 'Memencet jerawat bisa meninggalkan bekas yang jauh lebih lama hilang daripada jerawatnya.', 'memencet jerawat setiap kali muncul'],
+    ] },
+  sehat: { label: 'Kesehatan & olahraga', audience: 'kamu yang mau mulai olahraga', activity: 'olahraga', goal: 'mulai bugar tanpa harus ke gym', problem: 'semangat olahraga cuma bertahan seminggu',
+    past: 'Dulu semangat olahragaku cuma bertahan tiga hari, lalu berhenti lagi.', win: 'aku rutin olahraga sampai sekarang',
+    tips: [
+      ['Mulai dari lima belas menit sehari', 'Durasi pendek membuat kebiasaan lebih mudah bertahan. Tambah pelan-pelan setelah dua minggu.', 'langsung latihan berat satu jam di hari pertama'],
+      ['Jalan kaki setiap hari', 'Jalan kaki adalah olahraga paling murah dan paling mudah dijadikan kebiasaan.', 'meremehkan jalan kaki'],
+      ['Latihan kekuatan dua kali seminggu', 'Push up, squat, dan plank sudah cukup untuk mulai. Otot yang kuat membantu tubuh lebih bugar.', 'cuma melakukan kardio'],
+      ['Tidur cukup tujuh jam', 'Tubuh memperbaiki diri saat tidur. Kurang tidur membuat kamu lebih lapar dan lebih malas bergerak.', 'begadang lalu memaksa olahraga pagi'],
+      ['Penuhi protein di setiap makan', 'Telur, tahu, tempe, ikan, atau ayam membantu kamu kenyang lebih lama dan mendukung otot.', 'makan nasi banyak tanpa lauk berprotein'],
+      ['Siapkan baju olahraga dari malam', 'Semakin sedikit hambatan di pagi hari, semakin besar peluang kamu benar-benar berangkat.', 'menunggu mood untuk mulai olahraga'],
+    ] },
+  parenting: { label: 'Parenting', audience: 'orang tua dengan anak kecil', activity: 'mendampingi anak', goal: 'bikin anak lebih mau mendengar', problem: 'anak sering tantrum',
+    past: 'Dulu tiap pagi rumah kami penuh drama, anak tantrum, aku ikut emosi.', win: 'anakku jauh lebih mau mendengar',
+    tips: [
+      ['Validasi perasaannya dulu', 'Katakan, kamu kesal ya karena mainannya harus disimpan. Anak lebih tenang kalau perasaannya dimengerti.', 'langsung menyuruh anak berhenti menangis'],
+      ['Beri dua pilihan, bukan perintah', 'Mau pakai baju merah atau biru? Anak merasa punya kendali, dan kamu tetap memegang arah.', 'memberi perintah tanpa pilihan'],
+      ['Buat jadwal layar yang jelas', 'Batas yang jelas dan konsisten jauh lebih mudah diterima anak daripada larangan mendadak.', 'mengambil HP dari tangan anak secara tiba-tiba'],
+      ['Bacakan buku sepuluh menit sebelum tidur', 'Rutinitas yang tenang membantu anak tidur lebih cepat dan memperkaya kosakatanya.', 'membiarkan anak menonton video sampai tertidur'],
+      ['Puji usahanya, bukan hasilnya', 'Kamu tadi sabar sekali menyusun baloknya. Pujian seperti ini membuat anak berani mencoba.', 'hanya memuji anak saat menang'],
+      ['Turunkan badan setinggi mata anak', 'Bicara sambil berjongkok membuat anak merasa didengar, bukan dimarahi dari atas.', 'menegur anak sambil berteriak dari jauh'],
+    ] },
+  travel: { label: 'Traveling', audience: 'kamu yang suka jalan-jalan hemat', activity: 'traveling', goal: 'liburan puas dengan budget hemat', problem: 'budget liburan membengkak',
+    past: 'Dulu tiap pulang liburan, saldo tabunganku langsung terkuras.', win: 'liburanku jadi jauh lebih hemat',
+    tips: [
+      ['Pantau harga tiket sejak jauh hari', 'Pasang notifikasi harga dan coba berangkat di hari kerja. Selisihnya bisa lumayan.', 'membeli tiket mendadak di musim libur'],
+      ['Pilih penginapan dekat transportasi umum', 'Hemat ongkos dan waktu. Kadang penginapan sedikit lebih mahal justru lebih murah totalnya.', 'memilih penginapan murah yang jauh dari mana-mana'],
+      ['Makan di tempat yang ramai warga lokal', 'Biasanya lebih murah, lebih enak, dan kamu dapat pengalaman yang asli.', 'selalu makan di restoran tempat wisata'],
+      ['Bawa satu tas kabin saja', 'Bebas biaya bagasi, gerak lebih cepat, dan tidak repot di perjalanan.', 'membawa koper besar untuk tiga hari'],
+      ['Buat jadwal yang longgar', 'Dua atau tiga tempat per hari sudah cukup. Sisakan waktu untuk istirahat dan hal tak terduga.', 'memadatkan sepuluh tempat dalam sehari'],
+      ['Siapkan dana cadangan sepuluh persen', 'Selalu ada biaya tak terduga. Dengan cadangan, liburan tetap tenang.', 'menghabiskan semua budget di hari pertama'],
+    ] },
+  diri: { label: 'Motivasi & diri', audience: 'kamu yang lagi merasa stuck', activity: 'mengejar tujuan', goal: 'konsisten dan terus berkembang', problem: 'merasa jalan di tempat',
+    past: 'Dulu aku merasa hidupku jalan di tempat, sementara orang lain terus maju.', win: 'aku akhirnya konsisten',
+    tips: [
+      ['Bandingkan dirimu dengan dirimu kemarin', 'Orang lain punya titik mulai yang berbeda. Ukur kemajuanmu dari posisimu sendiri.', 'membandingkan diri dengan pencapaian orang lain di media sosial'],
+      ['Perbaiki satu persen setiap hari', 'Perubahan kecil yang konsisten jauh lebih kuat daripada semangat besar yang cepat padam.', 'menunggu momen yang sempurna untuk berubah'],
+      ['Selesaikan apa yang kamu mulai', 'Satu proyek yang selesai memberi kepercayaan diri lebih besar daripada sepuluh yang setengah jalan.', 'gonta-ganti tujuan setiap minggu'],
+      ['Kurangi konsumsi, perbanyak karya', 'Batasi waktu scrolling, lalu pakai waktunya untuk membuat sesuatu, sekecil apa pun.', 'menghabiskan berjam-jam scrolling tanpa tujuan'],
+      ['Cari lingkungan yang mendukung', 'Kita cenderung meniru kebiasaan orang-orang di sekitar kita. Pilih lingkaran yang membuatmu tumbuh.', 'bertahan di lingkungan yang meremehkan mimpimu'],
+      ['Rayakan kemenangan kecil', 'Catat hal kecil yang berhasil setiap hari. Otak butuh bukti bahwa usahamu ada hasilnya.', 'hanya fokus pada yang belum tercapai'],
+    ] },
+};
+function customNiche(t) {
+  return { label: t, audience: `kamu yang tertarik dengan ${t}`, activity: t, goal: `makin jago soal ${t}`, problem: 'hasilnya nggak sesuai harapan',
+    past: `Dulu aku bingung harus mulai ${t} dari mana.`, win: `aku makin percaya diri soal ${t}`,
+    tips: [
+      ['Kuasai dasarnya dulu', `Sebelum mencoba trik yang rumit, pahami dulu dasar-dasar ${t}. Fondasi yang kuat membuat langkah berikutnya lebih mudah.`, 'langsung loncat ke teknik yang rumit'],
+      ['Belajar dari yang sudah berhasil', `Cari tiga orang yang sudah sukses di ${t}, lalu perhatikan kebiasaan yang sama di antara mereka.`, 'mencoba semuanya sendiri tanpa referensi'],
+      ['Latihan sedikit tapi setiap hari', 'Lima belas menit setiap hari lebih efektif daripada tiga jam seminggu sekali.', 'cuma belajar kalau sedang semangat'],
+      ['Catat hasil dan evaluasi', 'Tulis apa yang berhasil dan apa yang tidak. Dari situ kamu tahu harus memperbaiki apa.', 'mengulang cara yang sama tanpa evaluasi'],
+      ['Fokus ke satu hal dulu', 'Pilih satu bagian yang paling penting, kuasai, baru pindah ke bagian lain.', 'mencoba semua hal sekaligus'],
+      ['Minta masukan dari orang lain', 'Pandangan orang lain sering menunjukkan hal yang tidak kita sadari.', 'takut menunjukkan hasil ke orang lain'],
+    ] };
+}
+const PLATS = { short: 'TikTok / Reels / Shorts', long: 'YouTube panjang' };
+const DURS = [[15, '15 dtk'], [30, '30 dtk'], [60, '60 dtk'], [180, '3 mnt'], [480, '8 mnt']];
+const NPTS = { 15: 1, 30: 2, 60: 3, 180: 5, 480: 6 };
+const TONES = {
+  santai: { label: 'Santai', pre: ['', '', 'Jujur ya, '], cta: 'Simpan video ini biar nggak lupa, dan follow buat tips berikutnya.' },
+  edukatif: { label: 'Edukatif', pre: ['', 'Tahukah kamu? '], cta: 'Simpan video ini sebagai catatan, dan bagikan ke teman yang butuh.' },
+  cerita: { label: 'Storytelling', pre: [''], cta: 'Kalau ini relate sama kamu, follow untuk cerita berikutnya.' },
+  lucu: { label: 'Lucu', pre: ['Oke, jujur-jujuran aja. ', ''], cta: 'Follow sebelum algoritma memisahkan kita.' },
+  inspiratif: { label: 'Inspiratif', pre: ['Dengarkan ini baik-baik. ', ''], cta: 'Kirim video ini ke satu orang yang perlu mendengarnya hari ini.' },
+  jualan: { label: 'Soft selling', pre: [''], cta: 'Kalau kamu mau panduan lengkapnya, cek link di bio, ya.' },
+};
+const BRIDGES = ['Kedengarannya sederhana, tapi justru di sini banyak orang menyerah.', 'Coba praktikkan minggu ini, lalu lihat bedanya.', 'Ini kelihatan kecil, tapi dampaknya terasa kalau dilakukan rutin.', 'Banyak yang tahu soal ini, tapi sedikit yang benar-benar melakukannya.', 'Kalau kamu baru bisa satu hal, mulai dari yang ini.', 'Jangan dilewati, karena poin ini sering jadi pembeda.'];
+
+const FORMATS = [
+  { key: 'tips', label: 'Tips',
+    titles: [d => `${d.n} cara ${d.goal} tanpa ribet`, d => `${d.n} trik ${d.activity} yang jarang dibahas`],
+    hooks: [d => `Kalau kamu pengin ${d.goal}, coba ${d.nw} hal ini.`, d => `Ini ${d.nw} trik ${d.activity} yang jarang dibahas. Yang terakhir paling sering dilupakan.`] },
+  { key: 'salah', label: 'Kesalahan umum',
+    titles: [d => `${d.n} kesalahan ${d.activity} yang bikin ${d.problem}`],
+    hooks: [d => `Stop dulu. Kalau ${d.problem}, bisa jadi kamu melakukan salah satu dari ${d.nw} kesalahan ini.`, d => `Aku dulu juga begini. Ini ${d.nw} kesalahan ${d.activity} yang bikin ${d.problem}.`] },
+  { key: 'cerita', label: 'Cerita pribadi', many: 2,
+    titles: [d => `Satu perubahan kecil yang bikin ${d.win}`],
+    hooks: [d => `${d.past} Sekarang ${d.win}. Ini yang aku ubah.`] },
+  { key: 'satu', label: 'Satu hal penting', many: 2,
+    titles: [d => `Kalau cuma boleh satu hal untuk ${d.goal}, lakukan ini`],
+    hooks: [d => `Kalau aku cuma boleh kasih satu saran untuk ${d.goal}, ini dia.`] },
+  { key: 'pemula', label: 'Untuk pemula',
+    titles: [d => `Panduan ${d.activity} untuk pemula: ${d.n} langkah awal`],
+    hooks: [d => `Baru mulai ${d.activity}? Ini ${d.nw} hal yang perlu kamu tahu duluan.`] },
+  { key: 'opini', label: 'Opini tidak populer',
+    titles: [d => `Pendapat tidak populer soal ${d.activity}`],
+    hooks: [d => `Pendapat tidak populer: ${d.t[2]} adalah alasan terbesar ${d.problem}.`] },
+  { key: 'tantangan', label: 'Tantangan 7 hari',
+    titles: [d => `Tantangan 7 hari untuk ${d.goal}`],
+    hooks: [d => `Ikut tantangan tujuh hari ini. Di hari ketujuh, kamu bakal merasakan bedanya.`] },
+];
+const FMT = Object.fromEntries(FORMATS.map(f => [f.key, f]));
+
+function nicheFor(p) {
+  const t = (p.topic || '').trim();
+  if (p.niche === 'lain' || !NICHES[p.niche]) return customNiche(t || 'konten kreatif');
+  const n = NICHES[p.niche];
+  return t ? Object.assign({}, n, { activity: t }) : n;
+}
+function params() { return { niche: S.sel.niche, topic: S.sel.topic, plat: S.sel.plat, dur: S.sel.dur, tone: S.sel.tone }; }
+
+function offlineIdeas(p) {
+  const d = nicheFor(p), n = NPTS[p.dur] || 3;
+  return shuffle(FORMATS).slice(0, 5).map(F => {
+    const k = Math.min(F.many || n, n);
+    const idx = shuffle([...d.tips.keys()]).slice(0, k);
+    const ctx = Object.assign({}, d, { n: k, nw: NUMW[k], t: d.tips[idx[0]] });
+    return Object.assign({ src: 'bawaan', fmt: F.key, label: F.label, title: cap(pick(F.titles)(ctx)), hook: pick(F.hooks)(ctx), tipIdx: idx }, p);
+  });
+}
+
+function offlineScript(idea) {
+  const d = nicheFor(idea), T = TONES[idea.tone] || TONES.santai;
+  const n = NPTS[idea.dur] || 3, long = idea.plat === 'long' || idea.dur >= 180;
+  const det = idea.dur >= 30;
+  const fmt = FMT[idea.fmt] ? idea.fmt : 'tips';
+  let idx = Array.isArray(idea.tipIdx) && idea.tipIdx.length ? idea.tipIdx : shuffle([...d.tips.keys()]).slice(0, Math.min(FMT[fmt].many || n, n));
+  const tips = idx.map(i => d.tips[i]).filter(Boolean);
+  const br = shuffle(BRIDGES);
+  const L = [];
+  const pre = /^(stop|aku|dulu|kalau|ikut|baru)/i.test(idea.hook) ? '' : pick(T.pre);
+  L.push('## HOOK', pre + idea.hook, '(tatap kamera)', '');
+  if (long) {
+    L.push('## PEMBUKA', `Halo, selamat datang kembali.`, `Di video ini kita bahas ${lc(idea.title)}.`, `Video ini cocok banget buat ${d.audience}.`, 'Tonton sampai habis, karena bagian terakhir paling sering dilewatkan.', '');
+  } else if (idea.dur >= 60) {
+    L.push(`Ini buat ${d.audience}.`, '');
+  }
+  const ordw = (i, total) => (total >= 3 && i === total - 1) ? 'terakhir' : ORD[i];
+  if (fmt === 'tips' || fmt === 'pemula') {
+    L.push('## ISI');
+    tips.forEach((t, i) => {
+      L.push(tips.length === 1 ? `Caranya: ${lc(t[0])}.` : `${cap(ordw(i, tips.length))}, ${lc(t[0])}.`);
+      if (det) L.push(t[1]);
+      if (long) L.push(br[i % br.length]);
+      L.push('');
+    });
+  } else if (fmt === 'salah') {
+    L.push('## ISI');
+    tips.forEach((t, i) => {
+      L.push(tips.length === 1 ? `Kesalahannya: ${t[2]}.` : `Kesalahan ${ordw(i, tips.length)}: ${t[2]}.`);
+      L.push(`Solusinya, ${lc(t[0])}.` + (det ? ' ' + t[1] : ''));
+      if (long) L.push(br[i % br.length]);
+      L.push('');
+    });
+  } else if (fmt === 'cerita') {
+    const [a, b] = tips;
+    L.push('## CERITA', 'Aku sudah coba macam-macam cara, tapi hasilnya begitu-begitu saja.', `Sampai akhirnya aku sadar, selama ini aku ${a[2]}.`, '(jeda sebentar)', '');
+    L.push('## PERUBAHAN', `Jadi aku ubah satu hal: ${lc(a[0])}.`);
+    if (det) L.push(a[1]);
+    if (b) L.push(`Setelah itu aku tambah satu kebiasaan lagi: ${lc(b[0])}.` + (idea.dur >= 60 ? ' ' + b[1] : ''));
+    if (long) L.push(br[0], br[1]);
+    L.push('', '## HASIL', `Hasilnya? Pelan-pelan, ${d.win}.`, 'Bukan sulap. Cuma kebiasaan kecil yang dilakukan terus.', '');
+  } else if (fmt === 'satu') {
+    const [a, b] = tips;
+    L.push('## ISI', `Jawabannya: ${lc(a[0])}.`, '(beri jeda)');
+    if (det) L.push(a[1]);
+    L.push(`Kenapa ini penting? Karena kebanyakan orang justru ${a[2]}.`);
+    if (b && idea.dur >= 60) L.push(`Kalau yang ini sudah jalan, baru tambahkan langkah berikutnya: ${lc(b[0])}.`);
+    if (long) L.push(br[0], br[1]);
+    L.push('');
+  } else if (fmt === 'opini') {
+    const [a, ...rest] = tips;
+    L.push('## ISI', 'Aku tahu, sebagian orang pasti nggak setuju.', `Tapi coba pikir. Kalau kamu ${a[2]}, wajar kalau ujungnya ${d.problem}.`, `Yang lebih masuk akal: ${lc(a[0])}.`);
+    if (det) L.push(a[1]);
+    rest.forEach((t, i) => { L.push(`${['Ditambah lagi', 'Satu lagi', 'Dan jangan lupa', 'Selain itu'][i % 4]}, ${lc(t[0])}.`); if (idea.dur >= 60) L.push(t[1]); if (long) L.push(br[i % br.length]); });
+    L.push('');
+  } else if (fmt === 'tantangan') {
+    L.push('## ATURAN MAIN', 'Aturannya gampang.');
+    tips.forEach((t, i) => {
+      const day = 1 + Math.floor(i * 7 / tips.length);
+      L.push(tips.length === 1 ? `Setiap hari selama seminggu: ${lc(t[0])}.` : i === 0 ? `Hari ${ORD[day - 1]}: ${lc(t[0])}.` : `Mulai hari ${ORD[day - 1]}, tambahkan: ${lc(t[0])}.`);
+      if (det) L.push(t[1]);
+    });
+    L.push('Lakukan tujuh hari berturut-turut, dan catat progresmu setiap hari.', '');
+  }
+  L.push('## PENUTUP');
+  if (tips.length >= 2 && idea.dur >= 60 && fmt !== 'cerita') L.push(`Jadi ingat ${NUMW[tips.length]} hal tadi: ${listJoin(tips.map(t => lc(t[0])))}.`);
+  if (fmt === 'salah') L.push('Kamu paling sering melakukan yang mana? Tulis di kolom komentar.');
+  if (fmt === 'tantangan') L.push('Kalau kamu ikut, tulis "aku ikut" di komentar.');
+  if (fmt === 'opini') L.push('Kamu setuju atau nggak? Tulis pendapatmu di komentar.');
+  L.push(long ? T.cta.replace(/follow/i, 'subscribe') : T.cta);
+  return L.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+/* ================= mesin AI ================= */
+const AI = { sample: null };
+function engine() {
+  if (S.settings.offline) return 'bawaan';
+  if (AI.sample) return 'claude';
+  if (S.settings.apiKey.trim()) return 'api';
+  return 'bawaan';
+}
+function renderEngine() {
+  const e = engine();
+  $('#engineName').textContent = e === 'claude' ? 'Claude' : e === 'api' ? 'Claude API' : 'Bawaan';
+  $('#apiBox').hidden = !!AI.sample;
+  $('#engineNote').textContent = AI.sample
+    ? 'Di dalam Claude, ide dan naskah AI ditulis memakai akun Claude Anda. Matikan di bawah untuk memakai bank ide bawaan.'
+    : 'Isi API key untuk ide dan naskah yang ditulis Claude. Tanpa kunci, aplikasi memakai bank ide bawaan yang bekerja tanpa internet.';
+}
+async function claudeAPI(prompt, effort) {
+  const model = S.settings.model || 'claude-opus-5-5';
+  const body = { model, max_tokens: 6000, output_config: { effort }, messages: [{ role: 'user', content: prompt }] };
+  const headers = { 'content-type': 'application/json', 'x-api-key': S.settings.apiKey.trim(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' };
+  if (model !== 'claude-haiku-5-5') { headers['anthropic-beta'] = 'server-side-fallback-2026-07-01'; body.fallbacks = 'default'; }
+  let r;
+  try { r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers, body: JSON.stringify(body) }); }
+  catch { throw new Error('Tidak bisa terhubung ke Anthropic. Cek koneksi internet.'); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const m = { 401: 'API key salah atau sudah dicabut.', 403: 'API key tidak punya akses ke model ini.', 429: 'Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.', 529: 'Server Claude sedang sibuk. Coba lagi sebentar lagi.' }[r.status];
+    throw new Error(m || (j.error && j.error.message) || `Galat ${r.status}`);
+  }
+  if (j.stop_reason === 'refusal') throw new Error('Claude menolak topik ini. Coba ubah topiknya.');
+  return (j.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+}
+async function askAI(prompt, { json = false, quick = false, onText } = {}) {
+  const e = engine();
+  if (e === 'claude') {
+    try {
+      if (json) return await AI.sample.json(prompt, { modelTier: quick ? 'quick' : 'default' });
+      const { text } = await AI.sample(prompt, { onText: onText ? ({ text }) => onText(text) : undefined, cache: false });
+      return text;
+    } catch (err) {
+      const m = { not_granted: 'Akses ke Claude tidak diizinkan.', rate_limited: 'Terlalu banyak permintaan. Coba lagi sebentar lagi.', cancelled: 'Dibatalkan.' }[err && err.code];
+      throw new Error(m || (err && err.message) || 'Claude tidak bisa menjawab sekarang.');
+    }
+  }
+  const text = await claudeAPI(prompt, quick ? 'low' : 'medium');
+  if (onText) onText(text);
+  if (!json) return text;
+  const a = text.indexOf('{'), b = text.lastIndexOf('}');
+  try { return JSON.parse(text.slice(a, b + 1)); } catch { throw new Error('Jawaban AI tidak terbaca. Coba lagi.'); }
+}
+function ctxText(p) {
+  const d = nicheFor(p);
+  return `Niche: ${NICHES[p.niche] ? NICHES[p.niche].label : 'umum'}. Topik spesifik: ${p.topic || '-'}. Penonton: ${d.audience}. Platform: ${PLATS[p.plat]}. Durasi: ${p.dur} detik. Gaya bicara: ${(TONES[p.tone] || TONES.santai).label}.`;
+}
+function ideaPrompt(p) {
+  return `Kamu penulis konten video berbahasa Indonesia untuk kreator. Buat 5 ide konten yang segar dan spesifik.
+${ctxText(p)}
+Setiap ide memakai sudut pandang berbeda (misalnya tips, kesalahan umum, cerita pribadi, opini, tantangan, mitos vs fakta, sebelum-sesudah).
+Hook adalah 1-2 kalimat pembuka yang diucapkan langsung ke kamera dan membuat orang berhenti scroll.
+Balas HANYA JSON tanpa teks lain, dengan bentuk:
+{"ide":[{"judul":"...","hook":"...","sudut":"..."}]}`;
+}
+function scriptPrompt(idea) {
+  const target = Math.round(idea.dur * WPS);
+  return `Tulis naskah video yang siap dibaca di teleprompter, dalam Bahasa Indonesia lisan yang natural (boleh memakai "aku" dan "kamu").
+${ctxText(idea)}
+Judul: ${idea.title}
+Hook: ${idea.hook}
+Sudut: ${idea.label || idea.sudut || '-'}
+Panjang target sekitar ${target} kata (durasi ${idea.dur} detik).
+Aturan format:
+- Bagi menjadi bagian dengan baris judul "## HOOK", "## ISI", dan "## PENUTUP"${idea.plat === 'long' || idea.dur >= 180 ? ', ditambah "## PEMBUKA" setelah hook' : ''}.
+- Kalimat pendek, satu gagasan per baris, baris kosong di antara paragraf.
+- Arahan ekspresi atau gerakan ditulis dalam kurung, misalnya (tatap kamera) atau (tunjuk ke bawah), secukupnya.
+- Tanpa emoji, tanpa tanda bintang, tanpa markdown lain.
+- Informasi harus akurat dan aman; jangan menjanjikan hasil instan.
+- Akhiri dengan ajakan yang cocok untuk ${PLATS[idea.plat]}.
+Balas hanya naskahnya.`;
+}
+
+/* ================= tampilan: ide ================= */
+let ideas = [];
+function chipGroup(el, items, key, onChange) {
+  el.innerHTML = items.map(([v, l]) => `<button type="button" class="chip" data-v="${esc(v)}" aria-pressed="${String(S.sel[key]) === String(v)}">${esc(l)}</button>`).join('');
+  el.onclick = e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    const v = b.dataset.v; S.sel[key] = typeof S.sel[key] === 'number' ? Number(v) : v; save();
+    $$('.chip', el).forEach(c => c.setAttribute('aria-pressed', String(c === b)));
+    onChange && onChange();
+  };
+}
+function renderIdeas() {
+  const box = $('#ideas');
+  if (!ideas.length) { box.innerHTML = ''; return; }
+  box.innerHTML = ideas.map((it, i) => `
+    <article class="idea">
+      <span class="fmt">${esc(it.label || it.sudut || 'Ide')}${it.src === 'ai' ? ' · Claude' : ''}</span>
+      <h3>${esc(it.title)}</h3>
+      <p class="hook">“${esc(it.hook)}”</p>
+      <div class="foot"><span class="meta">≈ ${it.dur >= 60 ? Math.round(it.dur / 60) + ' mnt' : it.dur + ' dtk'} · ${esc(PLATS[it.plat])}</span>
+      <button class="btn" type="button" data-i="${i}">Tulis naskah →</button></div>
+    </article>`).join('');
+}
+$('#ideas').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) writeScript(ideas[+b.dataset.i]); });
+
+function setStatus(el, msg) { el.hidden = !msg; el.innerHTML = msg ? `<span class="spin" aria-hidden="true"></span>${esc(msg)}` : ''; }
+
+async function getIdeas() {
+  const p = params(), btn = $('#btnIdeas'), st = $('#ideaStatus');
+  if (engine() === 'bawaan') { ideas = offlineIdeas(p); renderIdeas(); return; }
+  btn.disabled = true; setStatus(st, 'Claude sedang mencari ide…');
+  try {
+    const j = await askAI(ideaPrompt(p), { json: true, quick: true });
+    const list = (j && (j.ide || j.ideas)) || [];
+    if (!list.length) throw new Error('Claude tidak memberi ide. Coba lagi.');
+    ideas = list.slice(0, 5).map(x => Object.assign({ src: 'ai', title: String(x.judul || x.title || ''), hook: String(x.hook || ''), sudut: String(x.sudut || ''), label: String(x.sudut || 'Ide') }, p));
+  } catch (err) {
+    toast(err.message + ' Memakai ide bawaan.', 3500);
+    ideas = offlineIdeas(p);
+  } finally { btn.disabled = false; setStatus(st, ''); renderIdeas(); }
+}
+
+/* ================= naskah ================= */
+let cur = null; // naskah yang sedang dibuka
+function scriptById(id) { return S.scripts.find(s => s.id === id); }
+function renderList() {
+  const box = $('#list');
+  if (!S.scripts.length) { box.innerHTML = `<div class="empty">Belum ada naskah. Ambil ide di tab <b>Ide</b>, atau ketuk <b>+ Baru</b> untuk menulis sendiri.</div>`; return; }
+  box.innerHTML = S.scripts.slice().sort((a, b) => b.updated - a.updated).map(s => {
+    const w = words(s.body);
+    return `<button type="button" class="item" data-id="${s.id}"><span class="grow"><span class="t">${esc(s.title || 'Tanpa judul')}${s.example ? '<span class="tag">Contoh</span>' : ''}</span><span class="meta">${w} kata · ≈ ${fmtTime(w / WPS)}</span></span><span class="chev">›</span></button>`;
+  }).join('');
+}
+$('#list').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (b) openEditor(b.dataset.id); });
+function newScript(title, body, idea) {
+  const s = { id: uid(), title: title || '', body: body || '', idea: idea || null, updated: Date.now() };
+  S.scripts.push(s); save(); return s;
+}
+function openEditor(id) {
+  cur = scriptById(id); if (!cur) return;
+  showTab('naskah');
+  $('#listWrap').hidden = true; $('#editor').hidden = false;
+  $('#edTitle').value = cur.title; $('#edBody').value = cur.body;
+  $('#btnRegen').hidden = !cur.idea;
+  armDelete(false); updStats();
+  $('#main').scrollTop = 0;
+}
+function closeEditor() { cur = null; $('#editor').hidden = true; $('#listWrap').hidden = false; renderList(); }
+function updStats() { const w = words($('#edBody').value); $('#edStats').textContent = `${w} kata · ≈ ${fmtTime(w / WPS)}`; }
+let saveT;
+function persistEditor() { if (!cur) return; cur.title = $('#edTitle').value; cur.body = $('#edBody').value; cur.updated = Date.now(); clearTimeout(saveT); saveT = setTimeout(save, 300); }
+$('#edTitle').addEventListener('input', persistEditor);
+$('#edBody').addEventListener('input', () => { persistEditor(); updStats(); });
+$('#btnBack').onclick = closeEditor;
+$('#btnNew').onclick = () => { const s = newScript('', ''); openEditor(s.id); $('#edTitle').focus(); };
+$('#btnReadTop').onclick = () => $('#btnRead').click();
+$('#btnRead').onclick = () => { if (!$('#edBody').value.trim()) { toast('Naskahnya masih kosong.'); return; } openTP($('#edBody').value); };
+$('#btnCopy').onclick = async () => {
+  const ta = $('#edBody');
+  try { await navigator.clipboard.writeText(ta.value); toast('Naskah disalin.'); }
+  catch { ta.focus(); ta.select(); toast('Teks sudah dipilih, ketuk Salin.'); }
+};
+let delArmed = false;
+function armDelete(on) { delArmed = on; $('#btnDel').textContent = on ? 'Yakin hapus?' : 'Hapus'; }
+$('#btnDel').onclick = () => {
+  if (!delArmed) { armDelete(true); setTimeout(() => armDelete(false), 3000); return; }
+  S.scripts = S.scripts.filter(s => s !== cur); save(); toast('Naskah dihapus.'); closeEditor();
+};
+$('#btnRegen').onclick = () => { if (cur && cur.idea) fillScript(cur, cur.idea); };
+
+async function writeScript(idea) {
+  const s = newScript(idea.title, '', idea);
+  openEditor(s.id);
+  await fillScript(s, idea);
+}
+async function fillScript(s, idea) {
+  const ta = $('#edBody'), st = $('#edStatus');
+  const useAI = engine() !== 'bawaan';
+  const done = text => { if (cur === s) { ta.value = text; updStats(); } s.body = text; s.updated = Date.now(); save(); };
+  if (!useAI) { done(offlineScript(idea)); return; }
+  setStatus(st, 'Claude sedang menulis naskah…'); ta.readOnly = true;
+  $('#btnRead').disabled = $('#btnReadTop').disabled = $('#btnRegen').disabled = true;
+  try {
+    const text = await askAI(scriptPrompt(idea), { onText: t => { if (cur === s) { ta.value = t; updStats(); } } });
+    done(text.replace(/\*\*/g, ''));
+  } catch (err) {
+    toast(err.message + ' Memakai naskah bawaan.', 3500);
+    done(offlineScript(idea));
+  } finally { setStatus(st, ''); ta.readOnly = false; $('#btnRead').disabled = $('#btnReadTop').disabled = $('#btnRegen').disabled = false; }
+}
+
+/* ================= tab ================= */
+function showTab(t) {
+  $$('nav.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  ['ide', 'naskah', 'atur'].forEach(v => $('#v-' + v).hidden = v !== t);
+  if (t === 'naskah' && !cur) renderList();
+  $('#main').scrollTop = 0;
+}
+$('nav.tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; if (b.dataset.tab === 'naskah' && cur && b.getAttribute('aria-selected') === 'true') closeEditor(); showTab(b.dataset.tab); });
+$('#enginePill').onclick = () => showTab('atur');
+
+/* ================= pengaturan ================= */
+function bindSettings() {
+  const st = S.settings;
+  const f = $('#setFont'), sp = $('#setSpeed');
+  const upd = () => { $('#vFont').textContent = st.font + ' px'; $('#vSpeed').textContent = st.speed; };
+  f.value = st.font; sp.value = st.speed; upd();
+  f.oninput = () => { st.font = +f.value; upd(); save(); };
+  sp.oninput = () => { st.speed = +sp.value; upd(); save(); };
+  $('#setCount').value = String(st.countdown); $('#setCount').onchange = e => { st.countdown = +e.target.value; save(); };
+  $('#setMirror').checked = st.mirror; $('#setMirror').onchange = e => { st.mirror = e.target.checked; save(); };
+  $('#setAlign').checked = st.center; $('#setAlign').onchange = e => { st.center = e.target.checked; save(); };
+  $('#setOffline').checked = st.offline; $('#setOffline').onchange = e => { st.offline = e.target.checked; save(); renderEngine(); };
+  $('#setKey').value = st.apiKey; $('#setKey').oninput = e => { st.apiKey = e.target.value; save(); renderEngine(); };
+  $('#setModel').value = st.model; $('#setModel').onchange = e => { st.model = e.target.value; save(); };
+  let wipe = false;
+  $('#btnWipe').onclick = e => {
+    if (!wipe) { wipe = true; e.target.textContent = 'Ketuk lagi untuk menghapus semua'; setTimeout(() => { wipe = false; e.target.textContent = 'Hapus semua naskah'; }, 3000); return; }
+    S.scripts = []; save(); wipe = false; e.target.textContent = 'Hapus semua naskah'; toast('Semua naskah dihapus.'); cur = null;
+  };
+}
+
+/* ================= teleprompter ================= */
+const tp = { el: $('#tp'), stage: $('#stage'), text: $('#tpText'), pos: 0, max: 0, lineY: 0, playing: false, last: 0, played: 0, raf: 0, hideT: 0, count: 0, wake: null, stream: null, rec: null, recStart: 0, chunks: [] };
+function renderPrompt(src) {
+  const out = [];
+  src.replace(/\r/g, '').split('\n').forEach(raw => {
+    const line = raw.trim();
+    if (!line) { out.push('<div class="gap"></div>'); return; }
+    const h = line.match(/^#{1,3}\s*(.+)$/);
+    if (h) { out.push(`<div class="sec">${esc(h[1])}</div>`); return; }
+    if (/^\([^)]*\)$/.test(line)) { out.push(`<p class="dir">${esc(line)}</p>`); return; }
+    out.push(`<p>${esc(line).replace(/\(([^)]*)\)/g, '<span class="dir">($1)</span>')}</p>`);
+  });
+  out.push('<div class="end">— SELESAI —</div>');
+  tp.text.innerHTML = out.join('');
+}
+const pxPerSec = () => S.settings.speed * 0.1 * S.settings.font * 1.36;
+function layoutTP() {
+  const H = tp.stage.clientHeight;
+  tp.lineY = Math.round(H * 0.3);
+  tp.text.style.fontSize = S.settings.font + 'px';
+  tp.text.classList.toggle('center', !!S.settings.center);
+  tp.stage.classList.toggle('mirror', !!S.settings.mirror);
+  $('#readline').style.top = tp.lineY + 'px';
+  $('#tpFade').style.height = Math.max(0, tp.lineY - S.settings.font * 0.9) + 'px';
+  tp.max = Math.max(0, tp.text.scrollHeight - S.settings.font * 2);
+  tp.pos = Math.min(tp.pos, tp.max);
+  $('#spdV').textContent = S.settings.speed; $('#fntV').textContent = S.settings.font;
+  $('#tgMirror').setAttribute('aria-pressed', String(!!S.settings.mirror));
+  $('#tgAlign').setAttribute('aria-pressed', String(!!S.settings.center));
+  applyTP();
+}
+function applyTP() {
+  const y = tp.lineY - S.settings.font * 0.68 - tp.pos;
+  tp.text.style.transform = `translate3d(0,${y}px,0)`;
+  $('#tpProg').style.width = (tp.max ? tp.pos / tp.max * 100 : 0) + '%';
+  const rest = (tp.max - tp.pos) / pxPerSec();
+  $('#tpTime').textContent = `${fmtTime(tp.played)} / sisa ${fmtTime(rest)}`;
+  if (tp.rec) $('#recTime').textContent = fmtTime((performance.now() - tp.recStart) / 1000);
+}
+function frame(ts) {
+  if (!tp.playing) return;
+  const dt = Math.min(0.1, (ts - tp.last) / 1000); tp.last = ts;
+  tp.pos += pxPerSec() * dt; tp.played += dt;
+  if (tp.pos >= tp.max) { tp.pos = tp.max; applyTP(); pauseTP(); toast(tp.rec ? 'Naskah selesai. Ketuk Rekam untuk berhenti.' : 'Naskah selesai.'); return; }
+  applyTP();
+  tp.raf = requestAnimationFrame(frame);
+}
+function setPlayIcon() { $('#icoPlay').hidden = tp.playing; $('#icoPause').hidden = !tp.playing; $('#tpPlay').setAttribute('aria-label', tp.playing ? 'Jeda' : 'Putar'); }
+function playTP() {
+  if (tp.playing || tp.count) return;
+  if (tp.pos >= tp.max) tp.pos = 0;
+  tp.playing = true; tp.last = performance.now(); setPlayIcon();
+  tp.raf = requestAnimationFrame(frame); scheduleHide();
+}
+function pauseTP() { tp.playing = false; cancelAnimationFrame(tp.raf); setPlayIcon(); showChrome(); }
+function startWithCountdown(after) {
+  const n = S.settings.countdown;
+  if (!n) { after && after(); playTP(); return; }
+  let k = n; const c = $('#tpCount'); c.hidden = false; c.textContent = k; showChrome(true);
+  tp.count = setInterval(() => {
+    k--; if (k > 0) { c.textContent = k; return; }
+    clearInterval(tp.count); tp.count = 0; c.hidden = true; after && after(); playTP();
+  }, 1000);
+}
+function cancelCountdown() { if (tp.count) { clearInterval(tp.count); tp.count = 0; $('#tpCount').hidden = true; return true; } return false; }
+function toggleTP() { if (cancelCountdown()) return; tp.playing ? pauseTP() : startWithCountdown(); }
+function showChrome(keepHidden) { tp.el.classList.toggle('immersive', !!keepHidden); clearTimeout(tp.hideT); }
+function scheduleHide() { clearTimeout(tp.hideT); tp.el.classList.remove('immersive'); tp.hideT = setTimeout(() => { if (tp.playing) tp.el.classList.add('immersive'); }, 1800); }
+
+async function wake() { try { if ('wakeLock' in navigator && !tp.wake) { tp.wake = await navigator.wakeLock.request('screen'); tp.wake.addEventListener('release', () => tp.wake = null); } } catch {} }
+document.addEventListener('visibilitychange', () => { if (!tp.el.hidden && document.visibilityState === 'visible') wake(); if (document.visibilityState === 'hidden') { if (tp.rec) stopRec(); else if (tp.playing) pauseTP(); } });
+
+function openTP(src) {
+  renderPrompt(src); tp.pos = 0; tp.played = 0;
+  tp.el.hidden = false; showChrome();
+  requestAnimationFrame(layoutTP);
+  setTimeout(layoutTP, 400); // setelah font termuat
+  wake();
+}
+function closeTP() {
+  if (tp.rec) stopRec();
+  cancelCountdown(); pauseTP(); stopCam();
+  tp.el.hidden = true;
+  try { tp.wake && tp.wake.release(); } catch {} tp.wake = null;
+}
+$('#tpClose').onclick = closeTP;
+$('#tpPlay').onclick = e => { e.stopPropagation(); toggleTP(); };
+$('#tpRewind').onclick = () => { tp.pos = 0; tp.played = 0; applyTP(); };
+function stepSpeed(d) { S.settings.speed = Math.max(1, Math.min(15, Math.round((S.settings.speed + d) * 2) / 2)); $('#spdV').textContent = S.settings.speed; save(); applyTP(); if (tp.playing) scheduleHide(); }
+function stepFont(d) {
+  const ratio = tp.max ? tp.pos / tp.max : 0;
+  S.settings.font = Math.max(24, Math.min(80, S.settings.font + d)); save(); layoutTP(); tp.pos = ratio * tp.max; applyTP(); if (tp.playing) scheduleHide();
+}
+$('#spdDn').onclick = () => stepSpeed(-0.5); $('#spdUp').onclick = () => stepSpeed(0.5);
+$('#fntDn').onclick = () => stepFont(-4); $('#fntUp').onclick = () => stepFont(4);
+$('#tgMirror').onclick = () => { S.settings.mirror = !S.settings.mirror; save(); layoutTP(); };
+$('#tgAlign').onclick = () => { const r = tp.max ? tp.pos / tp.max : 0; S.settings.center = !S.settings.center; save(); layoutTP(); tp.pos = r * tp.max; applyTP(); };
+window.addEventListener('resize', () => { if (!tp.el.hidden) layoutTP(); });
+
+// sentuh: geser untuk menggulir, ketuk untuk putar/jeda
+let drag = null;
+tp.stage.addEventListener('pointerdown', e => { drag = { y: e.clientY, pos: tp.pos, moved: false }; });
+tp.stage.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dy = e.clientY - drag.y;
+  if (Math.abs(dy) > 8) drag.moved = true;
+  if (drag.moved) { tp.pos = Math.max(0, Math.min(tp.max, drag.pos - dy)); applyTP(); }
+});
+const endDrag = () => { if (drag && !drag.moved) { if (tp.el.classList.contains('immersive')) { showChrome(); scheduleHide(); } else toggleTP(); } drag = null; };
+tp.stage.addEventListener('pointerup', endDrag);
+tp.stage.addEventListener('pointercancel', () => drag = null);
+tp.stage.addEventListener('wheel', e => { tp.pos = Math.max(0, Math.min(tp.max, tp.pos + e.deltaY)); applyTP(); }, { passive: true });
+// keyboard / remote bluetooth
+document.addEventListener('keydown', e => {
+  if (tp.el.hidden) return;
+  const k = e.key;
+  if (k === ' ' || k === 'Enter') { e.preventDefault(); toggleTP(); }
+  else if (k === 'ArrowUp') { e.preventDefault(); stepSpeed(0.5); }
+  else if (k === 'ArrowDown') { e.preventDefault(); stepSpeed(-0.5); }
+  else if (k === 'PageDown' || k === 'ArrowRight') { e.preventDefault(); tp.pos = Math.min(tp.max, tp.pos + S.settings.font * 4); applyTP(); }
+  else if (k === 'PageUp' || k === 'ArrowLeft') { e.preventDefault(); tp.pos = Math.max(0, tp.pos - S.settings.font * 4); applyTP(); }
+  else if (k === 'Escape') closeTP();
+});
+
+/* ---- kamera & rekam ---- */
+const canCam = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && window.isSecureContext !== false;
+const canRec = canCam && typeof window.MediaRecorder !== 'undefined';
+// Di dalam Claude (artifact) halaman berjalan di bingkai yang tidak diberi akses kamera.
+const embedded = (() => { try { return window.top !== window.self; } catch { return true; } })();
+function camHelp(reason) { $('#camWhy').textContent = reason; $('#camHelp').hidden = false; }
+async function startCam() {
+  if (tp.stream) return true;
+  if (!canCam) { camHelp(embedded ? 'Halaman ini sedang dibuka di dalam Claude, dan Claude tidak memberi akses kamera ke halaman di dalamnya.' : 'Browser ini tidak memberi akses kamera. Buka alamat https aplikasi di Safari.'); return false; }
+  const want = { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1920 }, frameRate: { ideal: 30 } };
+  let stream = null, err = null;
+  try { stream = await navigator.mediaDevices.getUserMedia({ video: want, audio: { echoCancellation: true, noiseSuppression: true } }); }
+  catch (e) { err = e; }
+  // Sebagian perangkat menolak batasan ukuran: coba lagi dengan permintaan paling sederhana.
+  if (!stream && err && (err.name === 'OverconstrainedError' || err.name === 'NotReadableError' || err.name === 'AbortError')) {
+    try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true }); err = null; } catch (e) { err = e; }
+  }
+  if (!stream) {
+    const n = err && err.name;
+    if (embedded && (n === 'NotAllowedError' || n === 'SecurityError')) camHelp('Halaman ini sedang dibuka di dalam Claude, dan Claude tidak memberi akses kamera ke halaman di dalamnya.');
+    else if (n === 'NotAllowedError') camHelp('Izin kamera atau mikrofon ditolak. Buka Pengaturan iPhone › Safari › Kamera dan Mikrofon, pilih "Tanya" atau "Izinkan", lalu buka ulang aplikasi.');
+    else if (n === 'NotFoundError') toast('Kamera depan atau mikrofon tidak ditemukan.', 4000);
+    else if (n === 'NotReadableError') toast('Kamera sedang dipakai aplikasi lain. Tutup aplikasi itu lalu coba lagi.', 4000);
+    else toast('Kamera tidak bisa dibuka' + (n ? ' (' + n + ')' : '') + '.', 4000);
+    return false;
+  }
+  tp.stream = stream;
+  stream.getTracks().forEach(t => t.addEventListener('ended', () => {
+    // kamera terputus (telepon masuk, aplikasi ke latar belakang): simpan yang sudah terekam
+    if (tp.stream !== stream) return;
+    if (tp.rec) stopRec();
+    stopCam(); toast('Kamera terputus. Ketuk Kamera untuk menyalakan lagi.', 3500);
+  }));
+  const v = $('#tpVideo'); v.srcObject = stream; v.hidden = false; $('#tpScrim').hidden = false;
+  try { await v.play(); } catch {}
+  tp.el.classList.add('cam'); $('#tgCam').setAttribute('aria-pressed', 'true');
+  return true;
+}
+function stopCam() {
+  if (tp.stream) tp.stream.getTracks().forEach(t => t.stop());
+  tp.stream = null; const v = $('#tpVideo'); v.srcObject = null; v.hidden = true; $('#tpScrim').hidden = true;
+  tp.el.classList.remove('cam'); $('#tgCam').setAttribute('aria-pressed', 'false');
+}
+$('#tgCam').onclick = () => { if (tp.rec) return; tp.stream ? stopCam() : startCam(); };
+function pickMime() {
+  const list = ['video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+  for (const m of list) { try { if (MediaRecorder.isTypeSupported(m)) return m; } catch {} }
+  return '';
+}
+async function startRec() {
+  if (!(await startCam())) return;
+  if (!canRec) { toast('Perekaman video tidak didukung di browser ini. Pakai Safari di iPhone.', 4000); return; }
+  pauseTP(); tp.pos = 0; tp.played = 0; applyTP();
+  startWithCountdown(() => {
+    if (!tp.stream) return;
+    const mime = pickMime();
+    let rec = null;
+    const opts = [mime ? { mimeType: mime, videoBitsPerSecond: 6000000 } : null, mime ? { mimeType: mime } : null, undefined];
+    for (const o of opts) { if (o === null) continue; try { rec = new MediaRecorder(tp.stream, o); break; } catch {} }
+    if (!rec) { toast('Perekaman tidak didukung di browser ini.'); pauseTP(); return; }
+    const chunks = [];
+    const type = (rec.mimeType || mime || 'video/mp4').split(';')[0];
+    rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    rec.onerror = e => { toast('Perekaman gagal' + (e && e.error && e.error.name ? ' (' + e.error.name + ')' : '') + '.', 4000); if (tp.rec === rec) stopRec(); };
+    rec.onstop = () => {
+      if (!chunks.length) { toast('Rekaman kosong. Coba rekam lagi.', 3500); return; }
+      showClip(new Blob(chunks, { type: chunks[0].type || type }), chunks[0].type || type);
+    };
+    try { rec.start(); }
+    catch (e) { toast('Perekaman tidak bisa dimulai' + (e && e.name ? ' (' + e.name + ')' : '') + '.', 4000); pauseTP(); return; }
+    tp.rec = rec; tp.recStart = performance.now();
+    tp.el.classList.add('recording'); $('#tgRec').setAttribute('aria-pressed', 'true');
+  });
+}
+function stopRec() {
+  if (!tp.rec) { cancelCountdown(); return; }
+  const r = tp.rec; tp.rec = null;
+  try { if (r.state !== 'inactive') { r.requestData && r.state === 'recording' && r.requestData(); r.stop(); } } catch {}
+  tp.el.classList.remove('recording'); $('#tgRec').setAttribute('aria-pressed', 'false');
+  pauseTP();
+}
+$('#tgRec').onclick = () => { if (tp.rec) stopRec(); else if (tp.count) cancelCountdown(); else startRec(); };
+let clipURL = null, clipFile = null;
+function showClip(blob, type) {
+  if (clipURL) URL.revokeObjectURL(clipURL);
+  clipURL = URL.createObjectURL(blob);
+  type = (type || 'video/mp4').split(';')[0];
+  const ext = type.includes('mp4') || type.includes('quicktime') ? 'mp4' : 'webm';
+  const d = new Date(), pad = n => String(n).padStart(2, '0');
+  clipFile = new File([blob], `baca-kamera-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.${ext}`, { type });
+  const v = $('#clip'); v.src = clipURL; v.load(); $('#sheet').hidden = false;
+}
+$('#clipSave').onclick = async () => {
+  if (!clipFile) return;
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [clipFile] })) { await navigator.share({ files: [clipFile], title: 'Baca Kamera' }); return; }
+  } catch (err) { if (err && err.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = clipURL; a.download = clipFile.name; document.body.appendChild(a); a.click(); a.remove();
+  toast('Video diunduh.');
+};
+const closeSheet = () => { $('#sheet').hidden = true; const v = $('#clip'); v.pause(); };
+$('#clipClose').onclick = closeSheet;
+$('#clipRetake').onclick = () => { closeSheet(); tp.pos = 0; tp.played = 0; applyTP(); startRec(); };
+$('#camHelpOk').onclick = () => { $('#camHelp').hidden = true; };
+if (!canRec && !embedded) $('#tgRec').hidden = true;
+
+/* ================= mulai ================= */
+chipGroup($('#cNiche'), [...Object.entries(NICHES).map(([k, v]) => [k, v.label]), ['lain', 'Lainnya']], 'niche', () => { if (S.sel.niche === 'lain') $('#topic').focus(); });
+chipGroup($('#cPlat'), Object.entries(PLATS), 'plat', () => {
+  if (S.sel.plat === 'long' && S.sel.dur < 180) { S.sel.dur = 480; }
+  if (S.sel.plat === 'short' && S.sel.dur > 180) { S.sel.dur = 60; }
+  save(); renderDur();
+});
+function renderDur() { chipGroup($('#cDur'), DURS.filter(([v]) => S.sel.plat === 'long' ? v >= 180 : v <= 180).map(([v, l]) => [v, l]), 'dur'); }
+renderDur();
+chipGroup($('#cTone'), Object.entries(TONES).map(([k, v]) => [k, v.label]), 'tone');
+$('#topic').value = S.sel.topic;
+$('#topic').addEventListener('input', e => { S.sel.topic = e.target.value; save(); });
+$('#btnIdeas').onclick = getIdeas;
+
+if (!S.seeded) {
+  const ex = offlineIdeas({ niche: 'bisnis', topic: '', plat: 'short', dur: 60, tone: 'santai' }).find(i => i.fmt === 'salah') || offlineIdeas(params())[0];
+  const s = newScript(ex.title, offlineScript(ex), ex); s.example = true; S.seeded = true; save();
+}
+bindSettings();
+ideas = offlineIdeas(params()); renderIdeas();
+renderEngine();
+
+// Claude di dalam viewer Claude (artifact): ide AI tanpa API key
+if (window.claude && typeof window.claude.use === 'function') {
+  window.claude.use('sample').then(s => { if (s) { AI.sample = s; renderEngine(); } }).catch(() => {});
+}
+// Pasang service worker supaya bisa dibuka tanpa internet
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.top === window.self) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+})();
+</script>
+</body>
+</html>
