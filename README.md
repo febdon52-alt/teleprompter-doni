@@ -21,7 +21,10 @@ Aplikasi web (PWA) untuk iPhone: cari ide konten, dapat naskah yang siap dibaca,
 - Ketuk layar untuk jeda/lanjut, geser untuk menggulir manual.
 - Remote Bluetooth/keyboard: Spasi = putar/jeda, ↑/↓ = kecepatan, PageUp/PageDown = lompat, Esc = tutup.
 - Layar tidak meredup selama membaca (Screen Wake Lock).
-- **Rekam**: kamera depan tampil di belakang teks, rekam video + suara, lalu simpan ke app Foto lewat menu Bagikan.
+- **Rekam**: kamera depan tampil di belakang teks, rekam video + suara (hingga 1080p), lalu simpan ke app Foto lewat menu Bagikan.
+- **Jarak kamera**: pilih **Lebar** (4:3, memakai seluruh bidang pandang sensor, paling jauh) atau **Dekat** (9:16, sisi gambar terpotong), dan kualitas 1080p/720p. Slider zoom muncul otomatis bila perangkat mendukung. Pratinjau menampilkan persis bingkai yang direkam.
+- **Rekaman aman**: setiap rekaman langsung disimpan di aplikasi (dibaca ulang untuk memastikan), bisa dibuka lagi dari Atur › Rekaman tersimpan, lalu disimpan ke Foto atau diunduh. Bila kamera terputus di tengah rekaman, bagian yang sudah terekam tetap diselamatkan.
+- **Bila rekam bermasalah**: muncul pesan dengan rincian teknis dan tombol **Rekam dengan kamera iPhone** (kamera bawaan, hasilnya masuk ke aplikasi). Atur › **Uji kamera & rekam** menjalankan diagnosis 3 detik.
 
 Naskah tersimpan otomatis di perangkat (localStorage).
 

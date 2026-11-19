@@ -156,9 +156,26 @@ ol.steps{margin:0;padding-left:20px;display:grid;gap:6px;color:#c9ced6}
 .count{position:absolute;inset:0;display:grid;place-items:center;font:800 34vw/1 var(--f-display);color:var(--cue);background:rgba(0,0,0,.35);pointer-events:none}
 
 .sheet{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
-.sheet .box{width:100%;max-width:560px;background:var(--panel);border-top:1px solid var(--line);border-radius:20px 20px 0 0;display:grid;gap:12px;padding-block:18px calc(env(safe-area-inset-bottom,0px) + 18px)}
-.sheet video{width:100%;max-height:48vh;border-radius:12px;background:#000;max-width:100%}
+.sheet .box{width:100%;max-width:560px;max-height:92vh;overflow-y:auto;background:var(--panel);border-top:1px solid var(--line);border-radius:20px 20px 0 0;display:grid;gap:12px;padding-block:18px calc(env(safe-area-inset-bottom,0px) + 18px)}
+.sheet video{width:100%;max-height:34vh;border-radius:12px;background:#000;max-width:100%}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:90;background:var(--fg);color:var(--ink);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:700;max-width:calc(100% - 32px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.tp.fit-contain video{object-fit:contain}
+.camctl{display:none;gap:8px}
+.tp.cam .camctl{display:grid}
+.cc-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cc-row input[type=range]{flex:1;min-width:120px}
+.cc-lbl{font:500 10px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);min-width:36px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{background:var(--raise);border:0;color:var(--tp-fg);padding:8px 12px;font-size:13px;min-height:36px}
+.seg button[aria-pressed="true"]{background:var(--cue);color:var(--cue-ink);font-weight:700}
+.tp.recording .camctl .seg,.tp.recording .camctl input{pointer-events:none;opacity:.45}
+pre.diag{margin:0;padding:10px;background:var(--ink);border:1px solid var(--line);border-radius:10px;font:12px/1.5 var(--f-mono);white-space:pre-wrap;word-break:break-word;max-height:34vh;overflow:auto;user-select:text;-webkit-user-select:text}
+.rec-item{display:flex;align-items:center;gap:10px;background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.rec-item .grow{flex:1;min-width:0}
+.rec-item .t{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.rec-item .btn{min-height:38px;padding:6px 12px;font-size:14px}
+.sheet .row .btn{white-space:nowrap}
+.warn{color:var(--cue);font-size:14px;margin:0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -262,6 +279,23 @@ ol.steps{margin:0;padding-left:20px;display:grid;gap:6px;color:#c9ced6}
       </div>
 
       <div class="card">
+        <h2>Kamera &amp; rekaman</h2>
+        <div class="set"><label class="lbl" for="setFrame">Jarak kamera</label>
+          <select id="setFrame"><option value="wide">Lebar (4:3, paling jauh)</option><option value="full">Dekat (9:16, sisi gambar terpotong)</option></select>
+          <p class="hint">Kamera depan iPhone memotong sisi gambar saat 9:16. Pilih <b>Lebar</b> untuk memakai seluruh bidang pandang sensor.</p></div>
+        <div class="set"><label class="lbl" for="setQual">Kualitas video</label>
+          <select id="setQual"><option value="hd">Jelas (1080p)</option><option value="sd">Hemat (720p)</option></select></div>
+        <div class="row"><button class="btn grow" id="btnDiag" type="button">Uji kamera &amp; rekam</button><button class="btn grow" id="btnNativeCam" type="button">Kamera iPhone bawaan</button></div>
+        <pre class="diag" id="diagOut" hidden></pre>
+      </div>
+
+      <div class="card">
+        <h2>Rekaman tersimpan</h2>
+        <div class="set" id="recList"></div>
+        <p class="hint">Disimpan di iPhone ini. Buka lalu ketuk <b>Simpan ke Foto</b> untuk menaruhnya di app Foto.</p>
+      </div>
+
+      <div class="card">
         <h2>Data</h2>
         <button class="btn danger" id="btnWipe" type="button">Hapus semua naskah</button>
       </div>
@@ -292,6 +326,15 @@ ol.steps{margin:0;padding-left:20px;display:grid;gap:6px;color:#c9ced6}
     <button class="iconbtn" id="tpRewind" type="button" aria-label="Kembali ke awal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6"/><path d="M4 4v4.6h4.6"/></svg></button>
   </div>
   <div class="tp-bot" id="tpBot">
+    <div class="camctl">
+      <div class="cc-row">
+        <span class="cc-lbl">Jarak</span>
+        <div class="seg" id="camFrameChips" role="group" aria-label="Jarak kamera"><button type="button" class="cc" data-v="wide">Lebar</button><button type="button" class="cc" data-v="full">Dekat</button></div>
+        <div class="seg" id="camQualChips" role="group" aria-label="Kualitas video"><button type="button" class="cc" data-v="hd">1080p</button><button type="button" class="cc" data-v="sd">720p</button></div>
+        <span class="meta" id="camInfo"></span>
+      </div>
+      <div class="cc-row" id="zoomRow" hidden><span class="cc-lbl">Zoom</span><input type="range" id="zoomRange" aria-label="Zoom kamera"><span class="meta" id="zoomV"></span></div>
+    </div>
     <div class="ctl">
       <div class="stepper"><button type="button" id="spdDn" aria-label="Pelankan">−</button><span class="v"><span id="spdV">5</span><small>Kecepatan</small></span><button type="button" id="spdUp" aria-label="Percepat">+</button></div>
       <button class="play" id="tpPlay" type="button" aria-label="Putar"><svg id="icoPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg><svg id="icoPause" viewBox="0 0 24 24" fill="currentColor" hidden><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg></button>
@@ -311,11 +354,27 @@ ol.steps{margin:0;padding-left:20px;display:grid;gap:6px;color:#c9ced6}
   <div class="box gut">
     <h2>Hasil rekaman</h2>
     <video id="clip" playsinline controls></video>
+    <p class="meta" id="clipInfo"></p>
+    <p class="warn" id="clipNote" hidden></p>
+    <p class="warn" id="clipWarn" hidden>Pratinjau tidak bisa diputar di sini. Filenya tetap utuh: coba Simpan ke Foto atau Unduh file.</p>
     <button class="btn primary block" id="clipSave" type="button">Simpan ke Foto / Bagikan</button>
-    <div class="row"><button class="btn grow" id="clipRetake" type="button">Rekam ulang</button><button class="btn grow" id="clipClose" type="button">Tutup</button></div>
-    <p class="hint">Di menu Bagikan, pilih <b>Simpan Video</b> untuk menaruhnya di app Foto.</p>
+    <div class="row"><button class="btn grow" id="clipDl" type="button">Unduh file</button><button class="btn grow" id="clipRetake" type="button">Ulangi</button><button class="btn grow" id="clipClose" type="button">Tutup</button></div>
+    <p class="hint">Di menu Bagikan, pilih <b>Simpan Video</b> untuk menaruhnya di app Foto. Salinan juga tersimpan di aplikasi ini (Atur › Rekaman tersimpan).</p>
   </div>
 </div>
+
+<!-- GALAT REKAMAN -->
+<div class="sheet" id="recErr" hidden>
+  <div class="box gut">
+    <h2>Rekaman bermasalah</h2>
+    <p id="recErrMsg" style="margin:0"></p>
+    <div id="recErrDetailWrap" class="set"><span class="lbl">Rincian teknis (kirim ke saya bila perlu)</span><pre class="diag" id="recErrDetail"></pre></div>
+    <button class="btn primary block" id="recErrNative" type="button">Rekam dengan kamera iPhone</button>
+    <div class="row"><button class="btn grow" id="recErrRetry" type="button">Coba lagi</button><button class="btn grow" id="recErrClose" type="button">Tutup</button></div>
+    <p class="hint">Kamera iPhone bawaan merekam video penuh, lalu hasilnya langsung muncul di sini untuk disimpan ke Foto. Teks naskah tidak ikut tampil di mode itu.</p>
+  </div>
+</div>
+<input type="file" id="nativeCam" accept="video/*" capture="user" hidden>
 
 <!-- BANTUAN KAMERA -->
 <div class="sheet" id="camHelp" hidden>
@@ -361,7 +420,7 @@ let S;
 try { S = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { S = null; }
 if (!S || typeof S !== 'object') S = {};
 S.scripts = Array.isArray(S.scripts) ? S.scripts : [];
-S.settings = Object.assign({ speed: 5, font: 40, countdown: 3, mirror: false, center: false, apiKey: '', model: 'claude-opus-5-5', offline: false }, S.settings || {});
+S.settings = Object.assign({ speed: 5, font: 40, countdown: 3, mirror: false, center: false, apiKey: '', model: 'claude-opus-5-5', offline: false, camFrame: 'wide', camQuality: 'hd' }, S.settings || {});
 S.sel = Object.assign({ niche: 'bisnis', topic: '', plat: 'short', dur: 60, tone: 'santai' }, S.sel || {});
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
 
@@ -825,6 +884,8 @@ function bindSettings() {
   $('#setOffline').checked = st.offline; $('#setOffline').onchange = e => { st.offline = e.target.checked; save(); renderEngine(); };
   $('#setKey').value = st.apiKey; $('#setKey').oninput = e => { st.apiKey = e.target.value; save(); renderEngine(); };
   $('#setModel').value = st.model; $('#setModel').onchange = e => { st.model = e.target.value; save(); };
+  $('#setFrame').value = st.camFrame; $('#setFrame').onchange = e => setCam('camFrame', e.target.value);
+  $('#setQual').value = st.camQuality; $('#setQual').onchange = e => setCam('camQuality', e.target.value);
   let wipe = false;
   $('#btnWipe').onclick = e => {
     if (!wipe) { wipe = true; e.target.textContent = 'Ketuk lagi untuk menghapus semua'; setTimeout(() => { wipe = false; e.target.textContent = 'Hapus semua naskah'; }, 3000); return; }
@@ -896,13 +957,17 @@ function startWithCountdown(after) {
     clearInterval(tp.count); tp.count = 0; c.hidden = true; after && after(); playTP();
   }, 1000);
 }
-function cancelCountdown() { if (tp.count) { clearInterval(tp.count); tp.count = 0; $('#tpCount').hidden = true; return true; } return false; }
+function cancelCountdown() { if (tp.count) { clearInterval(tp.count); tp.count = 0; $('#tpCount').hidden = true; showChrome(); return true; } return false; }
 function toggleTP() { if (cancelCountdown()) return; tp.playing ? pauseTP() : startWithCountdown(); }
 function showChrome(keepHidden) { tp.el.classList.toggle('immersive', !!keepHidden); clearTimeout(tp.hideT); }
 function scheduleHide() { clearTimeout(tp.hideT); tp.el.classList.remove('immersive'); tp.hideT = setTimeout(() => { if (tp.playing) tp.el.classList.add('immersive'); }, 1800); }
 
 async function wake() { try { if ('wakeLock' in navigator && !tp.wake) { tp.wake = await navigator.wakeLock.request('screen'); tp.wake.addEventListener('release', () => tp.wake = null); } } catch {} }
-document.addEventListener('visibilitychange', () => { if (!tp.el.hidden && document.visibilityState === 'visible') wake(); if (document.visibilityState === 'hidden') { if (tp.rec) stopRec(); else if (tp.playing) pauseTP(); } });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') { if (!tp.el.hidden) wake(); return; }
+  // Jangan hentikan rekaman hanya karena Pusat Notifikasi ditarik. Bila iOS benar-benar mematikan kamera, event 'ended' menyelamatkan rekamannya.
+  if (!tp.rec && tp.playing) pauseTP();
+});
 
 function openTP(src) {
   renderPrompt(src); tp.pos = 0; tp.played = 0;
@@ -961,106 +1026,288 @@ const canCam = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
 const canRec = canCam && typeof window.MediaRecorder !== 'undefined';
 // Di dalam Claude (artifact) halaman berjalan di bingkai yang tidak diberi akses kamera.
 const embedded = (() => { try { return window.top !== window.self; } catch { return true; } })();
+const errText = e => e ? ((e.name || 'Galat') + (e.message ? ': ' + e.message : '')) : '';
 function camHelp(reason) { $('#camWhy').textContent = reason; $('#camHelp').hidden = false; }
+function recFail(msg, detail) {
+  $('#recErrMsg').textContent = msg;
+  $('#recErrDetail').textContent = (detail ? detail + '\n' : '') + 'Perangkat: ' + (navigator.userAgent || '').replace(/^Mozilla\/5\.0 /, '').slice(0, 110);
+  $('#recErr').hidden = false;
+}
+
+/* bingkai & kualitas */
+const FRAMES = { wide: { ratio: 3 / 4, hd: [1080, 1440], sd: [720, 960] }, full: { ratio: 9 / 16, hd: [1080, 1920], sd: [720, 1280] } };
+function camSpec() { const f = FRAMES[S.settings.camFrame] || FRAMES.wide; const [w, h] = f[S.settings.camQuality === 'sd' ? 'sd' : 'hd']; return { f, w, h }; }
+const videoBits = () => S.settings.camQuality === 'sd' ? 4000000 : 8000000;
+async function openStream() {
+  const { f, w, h } = camSpec();
+  const audio = { echoCancellation: true, noiseSuppression: true };
+  const tries = [
+    { video: { facingMode: 'user', width: { ideal: w }, height: { ideal: h }, aspectRatio: { ideal: f.ratio }, frameRate: { ideal: 30 } }, audio },
+    { video: { facingMode: 'user', width: { ideal: w }, height: { ideal: h } }, audio },
+    { video: { facingMode: 'user' }, audio: true },
+  ];
+  let err = null;
+  for (const c of tries) {
+    try { return await navigator.mediaDevices.getUserMedia(c); }
+    catch (e) { err = e; if (e && ['NotAllowedError', 'SecurityError', 'NotFoundError'].includes(e.name)) break; }
+  }
+  throw err;
+}
+function syncCamUI() {
+  $$('#camFrameChips .cc').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === S.settings.camFrame)));
+  $$('#camQualChips .cc').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === S.settings.camQuality)));
+  if ($('#setFrame')) { $('#setFrame').value = S.settings.camFrame; $('#setQual').value = S.settings.camQuality; }
+  tp.el.classList.toggle('fit-contain', S.settings.camFrame === 'wide');
+  const t = tp.stream && tp.stream.getVideoTracks()[0]; let st = {}; try { st = (t && t.getSettings()) || {}; } catch {}
+  $('#camInfo').textContent = st.width ? `${st.width}×${st.height}${st.frameRate ? ' · ' + Math.round(st.frameRate) + ' fps' : ''}` : '';
+}
+function setupZoom() {
+  const t = tp.stream && tp.stream.getVideoTracks()[0]; let caps = {}; try { caps = (t && t.getCapabilities && t.getCapabilities()) || {}; } catch {}
+  const z = caps.zoom, row = $('#zoomRow');
+  if (!z || !(z.max > z.min)) { row.hidden = true; return; }
+  const r = $('#zoomRange'); r.min = z.min; r.max = z.max; r.step = z.step || 0.1;
+  let cur = z.min; try { cur = t.getSettings().zoom || z.min; } catch {}
+  r.value = cur; $('#zoomV').textContent = (+cur).toFixed(1) + '×'; row.hidden = false;
+}
+$('#zoomRange').oninput = async e => {
+  const t = tp.stream && tp.stream.getVideoTracks()[0]; if (!t) return;
+  try { await t.applyConstraints({ advanced: [{ zoom: +e.target.value }] }); } catch {}
+  $('#zoomV').textContent = (+e.target.value).toFixed(1) + '×';
+};
+async function reopenCam() { if (tp.rec || tp.count || !tp.stream) return; stopCam(); await startCam(); }
+function setCam(key, val) { S.settings[key] = val; save(); syncCamUI(); reopenCam(); }
+$('#camFrameChips').onclick = e => { const b = e.target.closest('.cc'); if (b && !tp.rec) setCam('camFrame', b.dataset.v); };
+$('#camQualChips').onclick = e => { const b = e.target.closest('.cc'); if (b && !tp.rec) setCam('camQuality', b.dataset.v); };
+
 async function startCam() {
   if (tp.stream) return true;
   if (!canCam) { camHelp(embedded ? 'Halaman ini sedang dibuka di dalam Claude, dan Claude tidak memberi akses kamera ke halaman di dalamnya.' : 'Browser ini tidak memberi akses kamera. Buka alamat https aplikasi di Safari.'); return false; }
-  const want = { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1920 }, frameRate: { ideal: 30 } };
-  let stream = null, err = null;
-  try { stream = await navigator.mediaDevices.getUserMedia({ video: want, audio: { echoCancellation: true, noiseSuppression: true } }); }
-  catch (e) { err = e; }
-  // Sebagian perangkat menolak batasan ukuran: coba lagi dengan permintaan paling sederhana.
-  if (!stream && err && (err.name === 'OverconstrainedError' || err.name === 'NotReadableError' || err.name === 'AbortError')) {
-    try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true }); err = null; } catch (e) { err = e; }
-  }
-  if (!stream) {
+  let stream;
+  try { stream = await openStream(); }
+  catch (err) {
     const n = err && err.name;
     if (embedded && (n === 'NotAllowedError' || n === 'SecurityError')) camHelp('Halaman ini sedang dibuka di dalam Claude, dan Claude tidak memberi akses kamera ke halaman di dalamnya.');
     else if (n === 'NotAllowedError') camHelp('Izin kamera atau mikrofon ditolak. Buka Pengaturan iPhone › Safari › Kamera dan Mikrofon, pilih "Tanya" atau "Izinkan", lalu buka ulang aplikasi.');
-    else if (n === 'NotFoundError') toast('Kamera depan atau mikrofon tidak ditemukan.', 4000);
-    else if (n === 'NotReadableError') toast('Kamera sedang dipakai aplikasi lain. Tutup aplikasi itu lalu coba lagi.', 4000);
-    else toast('Kamera tidak bisa dibuka' + (n ? ' (' + n + ')' : '') + '.', 4000);
+    else if (n === 'NotFoundError') recFail('Kamera depan atau mikrofon tidak ditemukan.', errText(err));
+    else if (n === 'NotReadableError') recFail('Kamera sedang dipakai aplikasi lain. Tutup aplikasi itu lalu coba lagi.', errText(err));
+    else recFail('Kamera tidak bisa dibuka.', errText(err));
     return false;
   }
   tp.stream = stream;
-  stream.getTracks().forEach(t => t.addEventListener('ended', () => {
-    // kamera terputus (telepon masuk, aplikasi ke latar belakang): simpan yang sudah terekam
-    if (tp.stream !== stream) return;
-    if (tp.rec) stopRec();
-    stopCam(); toast('Kamera terputus. Ketuk Kamera untuk menyalakan lagi.', 3500);
-  }));
+  stream.getTracks().forEach(t => {
+    t.addEventListener('ended', () => {
+      // kamera terputus (telepon masuk, iOS mematikan kamera): selamatkan yang sudah terekam
+      if (tp.stream !== stream) return;
+      const was = !!tp.rec;
+      if (was) stopRec();
+      stopCam(); toast(was ? 'Kamera terputus. Rekaman sampai titik itu disimpan.' : 'Kamera terputus. Ketuk Kamera untuk menyalakan lagi.', 4000);
+    });
+    t.addEventListener('mute', () => { if (tp.rec && tp.stream === stream) toast('Kamera terhenti sementara oleh iPhone.', 2500); });
+  });
   const v = $('#tpVideo'); v.srcObject = stream; v.hidden = false; $('#tpScrim').hidden = false;
   try { await v.play(); } catch {}
   tp.el.classList.add('cam'); $('#tgCam').setAttribute('aria-pressed', 'true');
+  setupZoom(); syncCamUI();
   return true;
 }
 function stopCam() {
   if (tp.stream) tp.stream.getTracks().forEach(t => t.stop());
   tp.stream = null; const v = $('#tpVideo'); v.srcObject = null; v.hidden = true; $('#tpScrim').hidden = true;
   tp.el.classList.remove('cam'); $('#tgCam').setAttribute('aria-pressed', 'false');
+  $('#zoomRow').hidden = true; $('#camInfo').textContent = '';
 }
 $('#tgCam').onclick = () => { if (tp.rec) return; tp.stream ? stopCam() : startCam(); };
+
+/* perekam */
 function pickMime() {
   const list = ['video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
   for (const m of list) { try { if (MediaRecorder.isTypeSupported(m)) return m; } catch {} }
   return '';
 }
+function newRecorder(stream) {
+  const mime = pickMime(), vb = videoBits(), tries = [];
+  if (mime) tries.push({ mimeType: mime, videoBitsPerSecond: vb, audioBitsPerSecond: 128000 }, { mimeType: mime, videoBitsPerSecond: vb }, { mimeType: mime });
+  tries.push(null);
+  let lastErr = null;
+  for (const o of tries) { try { return { rec: o ? new MediaRecorder(stream, o) : new MediaRecorder(stream), mime }; } catch (e) { lastErr = e; } }
+  throw lastErr || new Error('MediaRecorder tidak bisa dibuat');
+}
 async function startRec() {
+  if (tp.rec || tp.count) return;
   if (!(await startCam())) return;
-  if (!canRec) { toast('Perekaman video tidak didukung di browser ini. Pakai Safari di iPhone.', 4000); return; }
+  if (!canRec) { recFail('Browser ini tidak bisa merekam video langsung.', 'MediaRecorder tidak tersedia'); return; }
   pauseTP(); tp.pos = 0; tp.played = 0; applyTP();
-  startWithCountdown(() => {
-    if (!tp.stream) return;
-    const mime = pickMime();
-    let rec = null;
-    const opts = [mime ? { mimeType: mime, videoBitsPerSecond: 6000000 } : null, mime ? { mimeType: mime } : null, undefined];
-    for (const o of opts) { if (o === null) continue; try { rec = new MediaRecorder(tp.stream, o); break; } catch {} }
-    if (!rec) { toast('Perekaman tidak didukung di browser ini.'); pauseTP(); return; }
-    const chunks = [];
-    const type = (rec.mimeType || mime || 'video/mp4').split(';')[0];
-    rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
-    rec.onerror = e => { toast('Perekaman gagal' + (e && e.error && e.error.name ? ' (' + e.error.name + ')' : '') + '.', 4000); if (tp.rec === rec) stopRec(); };
-    rec.onstop = () => {
-      if (!chunks.length) { toast('Rekaman kosong. Coba rekam lagi.', 3500); return; }
-      showClip(new Blob(chunks, { type: chunks[0].type || type }), chunks[0].type || type);
-    };
-    try { rec.start(); }
-    catch (e) { toast('Perekaman tidak bisa dimulai' + (e && e.name ? ' (' + e.name + ')' : '') + '.', 4000); pauseTP(); return; }
-    tp.rec = rec; tp.recStart = performance.now();
-    tp.el.classList.add('recording'); $('#tgRec').setAttribute('aria-pressed', 'true');
-  });
+  startWithCountdown(beginRecording);
+}
+function beginRecording() {
+  const stream = tp.stream;
+  if (!stream || stream.getTracks().some(t => t.readyState !== 'live')) { recFail('Kamera atau mikrofon terputus sebelum rekaman dimulai.', 'Track tidak aktif'); pauseTP(); return; }
+  let made;
+  try { made = newRecorder(stream); } catch (e) { recFail('Perekam video tidak bisa dibuat di browser ini.', errText(e)); pauseTP(); return; }
+  const rec = made.rec;
+  const job = { rec, chunks: [], err: null, done: false, start: performance.now(), dur: 0, mime: made.mime };
+  rec.ondataavailable = e => { if (e.data && e.data.size) job.chunks.push(e.data); };
+  rec.onerror = e => { job.err = (e && e.error) || e || new Error('Perekam melaporkan galat'); if (tp.rec === job) stopRec(); };
+  rec.onstop = () => finishRec(job);
+  try { rec.start(); }
+  catch (e) { recFail('Perekaman tidak bisa dimulai.', errText(e)); pauseTP(); return; }
+  tp.rec = job; tp.recStart = job.start;
+  tp.el.classList.add('recording'); $('#tgRec').setAttribute('aria-pressed', 'true');
 }
 function stopRec() {
   if (!tp.rec) { cancelCountdown(); return; }
-  const r = tp.rec; tp.rec = null;
-  try { if (r.state !== 'inactive') { r.requestData && r.state === 'recording' && r.requestData(); r.stop(); } } catch {}
+  const job = tp.rec; tp.rec = null;
+  job.dur = (performance.now() - job.start) / 1000;
   tp.el.classList.remove('recording'); $('#tgRec').setAttribute('aria-pressed', 'false');
   pauseTP();
+  // stop() langsung, tanpa requestData(): memanggil requestData() dulu bisa melempar galat dan membuat rekaman tidak pernah berhenti
+  try { if (job.rec.state !== 'inactive') job.rec.stop(); else finishRec(job); }
+  catch (e) { finishRec(job, e); }
+  setTimeout(() => finishRec(job), 5000); // jaga-jaga bila onstop tidak datang
 }
-$('#tgRec').onclick = () => { if (tp.rec) stopRec(); else if (tp.count) cancelCountdown(); else startRec(); };
-let clipURL = null, clipFile = null;
-function showClip(blob, type) {
-  if (clipURL) URL.revokeObjectURL(clipURL);
-  clipURL = URL.createObjectURL(blob);
+async function finishRec(job, extraErr) {
+  if (job.done) return; job.done = true;
+  const err = job.err || extraErr;
+  if (!job.dur) job.dur = (performance.now() - job.start) / 1000;
+  if (!job.chunks.length) { recFail('Rekaman kosong, tidak ada video yang tersimpan.', errText(err) || 'Perekam tidak mengirim data'); return; }
+  const type = (job.chunks[0].type || job.rec.mimeType || job.mime || 'video/mp4').split(';')[0];
+  await keepClip(new Blob(job.chunks, { type }), type, job.dur, err ? 'Rekaman berhenti di tengah jalan. Bagian yang sudah terekam diselamatkan (' + errText(err) + ').' : '');
+}
+
+/* penyimpanan di aplikasi (IndexedDB) */
+const idb = { db: null };
+function idbOpen() {
+  return new Promise((res, rej) => {
+    if (idb.db) return res(idb.db);
+    let q; try { q = indexedDB.open('baca-kamera', 1); } catch (e) { return rej(e); }
+    q.onupgradeneeded = () => q.result.createObjectStore('rec', { keyPath: 'id' });
+    q.onsuccess = () => { idb.db = q.result; res(idb.db); };
+    q.onerror = () => rej(q.error); q.onblocked = () => rej(new Error('IndexedDB terblokir'));
+  });
+}
+function idbTx(mode, fn) {
+  return idbOpen().then(db => new Promise((res, rej) => {
+    const tx = db.transaction('rec', mode); const rq = fn(tx.objectStore('rec'));
+    tx.oncomplete = () => res(rq && rq.result); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error || new Error('Dibatalkan'));
+  }));
+}
+const recPut = r => idbTx('readwrite', s => s.put(r));
+const recAll = () => idbTx('readonly', s => s.getAll());
+const recGet = id => idbTx('readonly', s => s.get(id));
+const recDel = id => idbTx('readwrite', s => s.delete(id));
+
+const clipExt = t => /quicktime/.test(t) ? 'mov' : /mp4/.test(t) ? 'mp4' : 'webm';
+const mb = n => (n / 1048576).toFixed(n > 10485760 ? 0 : 1) + ' MB';
+async function keepClip(blob, type, dur, note) {
   type = (type || 'video/mp4').split(';')[0];
-  const ext = type.includes('mp4') || type.includes('quicktime') ? 'mp4' : 'webm';
   const d = new Date(), pad = n => String(n).padStart(2, '0');
-  clipFile = new File([blob], `baca-kamera-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.${ext}`, { type });
-  const v = $('#clip'); v.src = clipURL; v.load(); $('#sheet').hidden = false;
+  const name = `baca-kamera-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.${clipExt(type)}`;
+  let file; try { file = new File([blob], name, { type }); } catch { file = blob; file.name = name; }
+  let saved = false;
+  try {
+    const id = uid();
+    await recPut({ id, name, type, size: blob.size, dur, created: Date.now(), blob });
+    const back = await recGet(id); saved = !!back && back.size === blob.size;  // dibaca ulang untuk memastikan benar-benar tersimpan
+  } catch {}
+  openClip(file, dur, saved, note);
+  renderRecs();
+}
+let clipURL = null, clipFile = null;
+function openClip(file, dur, saved, note) {
+  if (clipURL) URL.revokeObjectURL(clipURL);
+  clipFile = file; clipURL = URL.createObjectURL(file);
+  const parts = []; if (dur) parts.push(fmtTime(dur)); parts.push(mb(file.size)); parts.push(saved ? 'tersimpan di aplikasi' : 'BELUM tersimpan di aplikasi, simpan ke Foto sekarang');
+  $('#clipInfo').textContent = parts.join(' · ');
+  $('#clipNote').hidden = !note; $('#clipNote').textContent = note || '';
+  $('#clipWarn').hidden = true; $('#clipRetake').hidden = tp.el.hidden;
+  const v = $('#clip'); v.onerror = () => { $('#clipWarn').hidden = false; }; v.onloadedmetadata = () => { $('#clipWarn').hidden = true; };
+  v.src = clipURL; v.load(); $('#sheet').hidden = false;
+}
+function downloadClip() {
+  if (!clipFile) return;
+  const a = document.createElement('a'); a.href = clipURL; a.download = clipFile.name; document.body.appendChild(a); a.click(); a.remove();
+  toast('Video diunduh.');
 }
 $('#clipSave').onclick = async () => {
   if (!clipFile) return;
   try {
-    if (navigator.canShare && navigator.canShare({ files: [clipFile] })) { await navigator.share({ files: [clipFile], title: 'Baca Kamera' }); return; }
+    if (navigator.canShare && navigator.canShare({ files: [clipFile] })) { await navigator.share({ files: [clipFile], title: 'Baca Kamera' }); toast('Jika Anda memilih Simpan Video, cek app Foto.', 3500); return; }
   } catch (err) { if (err && err.name === 'AbortError') return; }
-  const a = document.createElement('a'); a.href = clipURL; a.download = clipFile.name; document.body.appendChild(a); a.click(); a.remove();
-  toast('Video diunduh.');
+  downloadClip();
 };
+$('#clipDl').onclick = downloadClip;
 const closeSheet = () => { $('#sheet').hidden = true; const v = $('#clip'); v.pause(); };
 $('#clipClose').onclick = closeSheet;
 $('#clipRetake').onclick = () => { closeSheet(); tp.pos = 0; tp.played = 0; applyTP(); startRec(); };
+$('#tgRec').onclick = () => { if (tp.rec) stopRec(); else if (tp.count) cancelCountdown(); else startRec(); };
+
+/* galat & kamera bawaan iPhone */
+$('#recErrClose').onclick = () => { $('#recErr').hidden = true; };
+$('#recErrRetry').onclick = () => { $('#recErr').hidden = true; if (!tp.el.hidden) startRec(); };
+const openNative = () => $('#nativeCam').click();
+$('#recErrNative').onclick = openNative; $('#btnNativeCam').onclick = openNative;
+$('#nativeCam').onchange = async e => {
+  const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+  $('#recErr').hidden = true;
+  await keepClip(f, f.type || 'video/mp4', 0, '');
+};
 $('#camHelpOk').onclick = () => { $('#camHelp').hidden = true; };
 if (!canRec && !embedded) $('#tgRec').hidden = true;
+
+/* daftar rekaman tersimpan */
+async function renderRecs() {
+  const box = $('#recList'); let all = [];
+  try { all = await recAll(); } catch { box.innerHTML = '<div class="empty">Penyimpanan di aplikasi tidak tersedia di browser ini. Simpan video langsung ke Foto setelah merekam.</div>'; return; }
+  all.sort((a, b) => b.created - a.created);
+  if (!all.length) { box.innerHTML = '<div class="empty">Belum ada rekaman.</div>'; return; }
+  const df = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  box.innerHTML = all.map(r => `<div class="rec-item"><span class="grow"><span class="t">${esc(df.format(new Date(r.created)))}</span><span class="meta">${r.dur ? fmtTime(r.dur) + ' · ' : ''}${mb(r.size)}</span></span><button type="button" class="btn" data-act="open" data-id="${esc(r.id)}">Buka</button><button type="button" class="btn danger" data-act="del" data-id="${esc(r.id)}">Hapus</button></div>`).join('');
+}
+$('#recList').addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  if (b.dataset.act === 'open') {
+    try { const r = await recGet(b.dataset.id); if (r) { let f; try { f = new File([r.blob], r.name, { type: r.type }); } catch { f = r.blob; f.name = r.name; } openClip(f, r.dur, true, ''); } } catch { toast('Rekaman tidak bisa dibuka.'); }
+  } else if (b.dataset.act === 'del') {
+    if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Yakin?'; setTimeout(() => { b.dataset.armed = ''; b.textContent = 'Hapus'; }, 3000); return; }
+    try { await recDel(b.dataset.id); } catch {} renderRecs();
+  }
+});
+
+/* uji kamera & rekam */
+function testRecord(stream) {
+  return new Promise((res, rej) => {
+    let made; try { made = newRecorder(stream); } catch (e) { return rej(e); }
+    const rec = made.rec, chunks = []; let type = '';
+    rec.ondataavailable = e => { if (e.data && e.data.size) { chunks.push(e.data); type = type || e.data.type; } };
+    rec.onerror = e => rej((e && e.error) || new Error('Perekam melaporkan galat'));
+    rec.onstop = () => res({ size: chunks.reduce((n, c) => n + c.size, 0), type: type || rec.mimeType, chunks: chunks.length });
+    try { rec.start(); } catch (e) { return rej(e); }
+    setTimeout(() => { try { rec.stop(); } catch (e) { rej(e); } }, 3000);
+  });
+}
+$('#btnDiag').onclick = async e => {
+  const btn = e.currentTarget, out = $('#diagOut'), L = []; out.hidden = false;
+  const log = t => { L.push(t); out.textContent = L.join('\n'); };
+  log('Konteks aman (https): ' + (window.isSecureContext ? 'ya' : 'TIDAK'));
+  log('Dibuka dari Layar Utama: ' + ((navigator.standalone || matchMedia('(display-mode: standalone)').matches) ? 'ya' : 'tidak (Safari biasa)'));
+  log('MediaRecorder: ' + (window.MediaRecorder ? 'ada' : 'TIDAK ADA'));
+  if (window.MediaRecorder) ['video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'].forEach(m => { let ok = false; try { ok = MediaRecorder.isTypeSupported(m); } catch {} log('  ' + m + ': ' + (ok ? 'ya' : 'tidak')); });
+  if (!canCam) { log('Kamera: tidak tersedia di halaman ini'); return; }
+  btn.disabled = true; let stream;
+  try { stream = await openStream(); } catch (err) { log('Kamera GAGAL: ' + errText(err)); btn.disabled = false; return; }
+  const t = stream.getVideoTracks()[0]; let st = {}, caps = {}; try { st = t.getSettings(); caps = t.getCapabilities ? t.getCapabilities() : {}; } catch {}
+  log(`Kamera: ${st.width}×${st.height} @ ${Math.round(st.frameRate || 0)} fps (diminta ${camSpec().w}×${camSpec().h})`);
+  log('Zoom kamera: ' + (caps.zoom ? caps.zoom.min + '–' + caps.zoom.max + '×' : 'tidak didukung iPhone untuk kamera depan'));
+  log('Mikrofon: ' + (stream.getAudioTracks().length ? 'ada' : 'TIDAK ADA'));
+  const vid = document.createElement('video'); vid.muted = true; vid.playsInline = true; vid.srcObject = stream;
+  vid.style.cssText = 'position:fixed;width:2px;height:2px;opacity:0;pointer-events:none'; document.body.appendChild(vid); try { await vid.play(); } catch {}
+  if (window.MediaRecorder) {
+    log('Uji rekam 3 detik…');
+    try { const r = await testRecord(stream); log(`Hasil: ${r.size} byte, ${r.type || 'tipe kosong'}, ${r.chunks} bagian`); log(r.size > 20000 ? 'Perekaman: OK' : 'Perekaman: file terlalu kecil, ada masalah'); }
+    catch (err) { log('Perekaman GAGAL: ' + errText(err)); }
+  }
+  vid.remove(); stream.getTracks().forEach(x => x.stop()); btn.disabled = false;
+};
 
 /* ================= mulai ================= */
 chipGroup($('#cNiche'), [...Object.entries(NICHES).map(([k, v]) => [k, v.label]), ['lain', 'Lainnya']], 'niche', () => { if (S.sel.niche === 'lain') $('#topic').focus(); });
@@ -1082,7 +1329,7 @@ if (!S.seeded) {
 }
 bindSettings();
 ideas = offlineIdeas(params()); renderIdeas();
-renderEngine();
+renderEngine(); syncCamUI(); renderRecs();
 
 // Claude di dalam viewer Claude (artifact): ide AI tanpa API key
 if (window.claude && typeof window.claude.use === 'function') {
