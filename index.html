@@ -110,7 +110,8 @@ ol.steps{margin:0;padding-left:20px;display:grid;gap:6px;color:#c9ced6}
 
 /* ---------- Teleprompter ---------- */
 .tp{position:fixed;inset:0;z-index:50;background:var(--tp-bg);color:var(--tp-fg);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
-.tp video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.tp video{position:absolute;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none}
+.tp canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform:scaleX(-1)}
 .tp .scrim{position:absolute;inset:0;background:var(--scrim);pointer-events:none}
 .stage{position:absolute;inset:0;overflow:hidden}
 .stage.mirror{transform:scaleX(-1)}
@@ -159,16 +160,17 @@ ol.steps{margin:0;padding-left:20px;display:grid;gap:6px;color:#c9ced6}
 .sheet .box{width:100%;max-width:560px;max-height:92vh;overflow-y:auto;background:var(--panel);border-top:1px solid var(--line);border-radius:20px 20px 0 0;display:grid;gap:12px;padding-block:18px calc(env(safe-area-inset-bottom,0px) + 18px)}
 .sheet video{width:100%;max-height:34vh;border-radius:12px;background:#000;max-width:100%}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:90;background:var(--fg);color:var(--ink);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:700;max-width:calc(100% - 32px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
-.tp.fit-contain video{object-fit:contain}
 .camctl{display:none;gap:8px}
 .tp.cam .camctl{display:grid}
-.cc-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.cc-row input[type=range]{flex:1;min-width:120px}
-.cc-lbl{font:500 10px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);min-width:36px}
+.cc-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cc-row input[type=range]{flex:1;min-width:80px}
+.cc-lbl{font:500 10px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:34px}
+#zoomV{min-width:38px;text-align:right}
 .seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .seg button{background:var(--raise);border:0;color:var(--tp-fg);padding:8px 12px;font-size:13px;min-height:36px}
 .seg button[aria-pressed="true"]{background:var(--cue);color:var(--cue-ink);font-weight:700}
-.tp.recording .camctl .seg,.tp.recording .camctl input{pointer-events:none;opacity:.45}
+.tp.recording .camctl .seg{pointer-events:none;opacity:.45}
+.zb{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--raise);color:var(--tp-fg);font-weight:700;font-size:16px;flex:none}
 pre.diag{margin:0;padding:10px;background:var(--ink);border:1px solid var(--line);border-radius:10px;font:12px/1.5 var(--f-mono);white-space:pre-wrap;word-break:break-word;max-height:34vh;overflow:auto;user-select:text;-webkit-user-select:text}
 .rec-item{display:flex;align-items:center;gap:10px;background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .rec-item .grow{flex:1;min-width:0}
@@ -280,9 +282,9 @@ pre.diag{margin:0;padding:10px;background:var(--ink);border:1px solid var(--line
 
       <div class="card">
         <h2>Kamera &amp; rekaman</h2>
-        <div class="set"><label class="lbl" for="setFrame">Jarak kamera</label>
-          <select id="setFrame"><option value="wide">Lebar (4:3, paling jauh)</option><option value="full">Dekat (9:16, sisi gambar terpotong)</option></select>
-          <p class="hint">Kamera depan iPhone memotong sisi gambar saat 9:16. Pilih <b>Lebar</b> untuk memakai seluruh bidang pandang sensor.</p></div>
+        <div class="set"><label class="lbl" for="setRatio">Rasio video</label>
+          <select id="setRatio"><option value="9:16">9:16 — vertikal penuh (TikTok, Reels, Shorts)</option><option value="3:4">3:4 — vertikal lebar, bidang pandang penuh</option><option value="4:5">4:5 — Instagram feed</option><option value="1:1">1:1 — persegi</option><option value="16:9">16:9 — horizontal (YouTube)</option></select>
+          <p class="hint">Di teleprompter, geser slider <b>Zoom</b> atau cubit layar dengan dua jari untuk zoom in/out. Di bawah 1× gambar mengecil dan tepinya diisi buram. Zoom dan rasio langsung terlihat di pratinjau dan ikut terekam.</p></div>
         <div class="set"><label class="lbl" for="setQual">Kualitas video</label>
           <select id="setQual"><option value="hd">Jelas (1080p)</option><option value="sd">Hemat (720p)</option></select></div>
         <div class="row"><button class="btn grow" id="btnDiag" type="button">Uji kamera &amp; rekam</button><button class="btn grow" id="btnNativeCam" type="button">Kamera iPhone bawaan</button></div>
@@ -311,7 +313,8 @@ pre.diag{margin:0;padding:10px;background:var(--ink);border:1px solid var(--line
 
 <!-- TELEPROMPTER -->
 <div class="tp" id="tp" hidden>
-  <video id="tpVideo" playsinline muted autoplay hidden></video>
+  <video id="tpVideo" playsinline muted autoplay></video>
+  <canvas id="tpCanvas" hidden></canvas>
   <div class="scrim" id="tpScrim" hidden></div>
   <div class="stage" id="stage">
     <div class="tp-text" id="tpText"></div>
@@ -328,12 +331,15 @@ pre.diag{margin:0;padding:10px;background:var(--ink);border:1px solid var(--line
   <div class="tp-bot" id="tpBot">
     <div class="camctl">
       <div class="cc-row">
-        <span class="cc-lbl">Jarak</span>
-        <div class="seg" id="camFrameChips" role="group" aria-label="Jarak kamera"><button type="button" class="cc" data-v="wide">Lebar</button><button type="button" class="cc" data-v="full">Dekat</button></div>
+        <span class="cc-lbl">Rasio</span>
+        <div class="seg" id="camRatioChips" role="group" aria-label="Rasio video"><button type="button" class="cc" data-v="9:16">9:16</button><button type="button" class="cc" data-v="3:4">3:4</button><button type="button" class="cc" data-v="4:5">4:5</button><button type="button" class="cc" data-v="1:1">1:1</button><button type="button" class="cc" data-v="16:9">16:9</button></div>
+      </div>
+      <div class="cc-row">
+        <span class="cc-lbl">Mutu</span>
         <div class="seg" id="camQualChips" role="group" aria-label="Kualitas video"><button type="button" class="cc" data-v="hd">1080p</button><button type="button" class="cc" data-v="sd">720p</button></div>
         <span class="meta" id="camInfo"></span>
       </div>
-      <div class="cc-row" id="zoomRow" hidden><span class="cc-lbl">Zoom</span><input type="range" id="zoomRange" aria-label="Zoom kamera"><span class="meta" id="zoomV"></span></div>
+      <div class="cc-row" id="zoomRow"><span class="cc-lbl">Zoom</span><button type="button" class="zb" id="zoomOut" aria-label="Zoom out">−</button><input type="range" id="zoomRange" min="0.6" max="3" step="0.05" value="1" aria-label="Zoom"><button type="button" class="zb" id="zoomIn" aria-label="Zoom in">+</button><button type="button" class="zb" id="zoomReset" aria-label="Zoom 1x">1×</button><span class="meta" id="zoomV">1.0×</span></div>
     </div>
     <div class="ctl">
       <div class="stepper"><button type="button" id="spdDn" aria-label="Pelankan">−</button><span class="v"><span id="spdV">5</span><small>Kecepatan</small></span><button type="button" id="spdUp" aria-label="Percepat">+</button></div>
@@ -420,7 +426,8 @@ let S;
 try { S = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { S = null; }
 if (!S || typeof S !== 'object') S = {};
 S.scripts = Array.isArray(S.scripts) ? S.scripts : [];
-S.settings = Object.assign({ speed: 5, font: 40, countdown: 3, mirror: false, center: false, apiKey: '', model: 'claude-opus-5-5', offline: false, camFrame: 'wide', camQuality: 'hd' }, S.settings || {});
+if (S.settings && S.settings.camFrame && !S.settings.camRatio) S.settings.camRatio = S.settings.camFrame === 'full' ? '9:16' : '3:4';
+S.settings = Object.assign({ speed: 5, font: 40, countdown: 3, mirror: false, center: false, apiKey: '', model: 'claude-opus-5-5', offline: false, camRatio: '3:4', camQuality: 'hd', zoom: 1 }, S.settings || {});
 S.sel = Object.assign({ niche: 'bisnis', topic: '', plat: 'short', dur: 60, tone: 'santai' }, S.sel || {});
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
 
@@ -884,7 +891,7 @@ function bindSettings() {
   $('#setOffline').checked = st.offline; $('#setOffline').onchange = e => { st.offline = e.target.checked; save(); renderEngine(); };
   $('#setKey').value = st.apiKey; $('#setKey').oninput = e => { st.apiKey = e.target.value; save(); renderEngine(); };
   $('#setModel').value = st.model; $('#setModel').onchange = e => { st.model = e.target.value; save(); };
-  $('#setFrame').value = st.camFrame; $('#setFrame').onchange = e => setCam('camFrame', e.target.value);
+  $('#setRatio').value = st.camRatio; $('#setRatio').onchange = e => setCam('camRatio', e.target.value);
   $('#setQual').value = st.camQuality; $('#setQual').onchange = e => setCam('camQuality', e.target.value);
   let wipe = false;
   $('#btnWipe').onclick = e => {
@@ -997,17 +1004,23 @@ $('#tgAlign').onclick = () => { const r = tp.max ? tp.pos / tp.max : 0; S.settin
 window.addEventListener('resize', () => { if (!tp.el.hidden) layoutTP(); });
 
 // sentuh: geser untuk menggulir, ketuk untuk putar/jeda
-let drag = null;
-tp.stage.addEventListener('pointerdown', e => { drag = { y: e.clientY, pos: tp.pos, moved: false }; });
+let drag = null, pinch = null; const ptrs = new Map();
+tp.stage.addEventListener('pointerdown', e => {
+  ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+  if (ptrs.size === 2 && cam.pipe) { const [a, b] = [...ptrs.values()]; pinch = { d0: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, z0: cam.pipe.zoom }; drag = null; }
+  else if (ptrs.size === 1) drag = { y: e.clientY, pos: tp.pos, moved: false };
+});
 tp.stage.addEventListener('pointermove', e => {
+  if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+  if (pinch && ptrs.size >= 2) { const [a, b] = [...ptrs.values()]; setZoom(pinch.z0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d0); return; }
   if (!drag) return;
   const dy = e.clientY - drag.y;
   if (Math.abs(dy) > 8) drag.moved = true;
   if (drag.moved) { tp.pos = Math.max(0, Math.min(tp.max, drag.pos - dy)); applyTP(); }
 });
 const endDrag = () => { if (drag && !drag.moved) { if (tp.el.classList.contains('immersive')) { showChrome(); scheduleHide(); } else toggleTP(); } drag = null; };
-tp.stage.addEventListener('pointerup', endDrag);
-tp.stage.addEventListener('pointercancel', () => drag = null);
+tp.stage.addEventListener('pointerup', e => { ptrs.delete(e.pointerId); if (pinch) { if (ptrs.size < 2) pinch = null; drag = null; return; } endDrag(); });
+tp.stage.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); pinch = null; drag = null; });
 tp.stage.addEventListener('wheel', e => { tp.pos = Math.max(0, Math.min(tp.max, tp.pos + e.deltaY)); applyTP(); }, { passive: true });
 // keyboard / remote bluetooth
 document.addEventListener('keydown', e => {
@@ -1034,16 +1047,22 @@ function recFail(msg, detail) {
   $('#recErr').hidden = false;
 }
 
-/* bingkai & kualitas */
-const FRAMES = { wide: { ratio: 3 / 4, hd: [1080, 1440], sd: [720, 960] }, full: { ratio: 9 / 16, hd: [1080, 1920], sd: [720, 1280] } };
-function camSpec() { const f = FRAMES[S.settings.camFrame] || FRAMES.wide; const [w, h] = f[S.settings.camQuality === 'sd' ? 'sd' : 'hd']; return { f, w, h }; }
-const videoBits = () => S.settings.camQuality === 'sd' ? 4000000 : 8000000;
+/* rasio, kualitas, zoom — hasil digambar lewat kanvas supaya pratinjau = rekaman */
+const RATIOS = { '9:16': [9, 16], '3:4': [3, 4], '4:5': [4, 5], '1:1': [1, 1], '16:9': [16, 9] };
+function outSize() {
+  const [a, b] = RATIOS[S.settings.camRatio] || RATIOS['3:4'], short = S.settings.camQuality === 'sd' ? 720 : 1080;
+  const w = a >= b ? Math.round(short * a / b) : short, h = a >= b ? short : Math.round(short * b / a);
+  return [w - w % 2, h - h % 2];
+}
+const videoBits = () => { const [w, h] = outSize(); return Math.min(10e6, Math.max(3e6, w * h * 4)); };
+const cam = { pipe: null };
+const ZMIN = 0.6, ZMAX = 3;
 async function openStream() {
-  const { f, w, h } = camSpec();
+  // sumber selalu 3:4 terlebar; rasio akhir dipotong dari sini
   const audio = { echoCancellation: true, noiseSuppression: true };
   const tries = [
-    { video: { facingMode: 'user', width: { ideal: w }, height: { ideal: h }, aspectRatio: { ideal: f.ratio }, frameRate: { ideal: 30 } }, audio },
-    { video: { facingMode: 'user', width: { ideal: w }, height: { ideal: h } }, audio },
+    { video: { facingMode: 'user', width: { ideal: 1440 }, height: { ideal: 1920 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }, audio },
+    { video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1440 } }, audio },
     { video: { facingMode: 'user' }, audio: true },
   ];
   let err = null;
@@ -1053,31 +1072,44 @@ async function openStream() {
   }
   throw err;
 }
+function makePipe(canvas, video) {
+  const ctx = canvas.getContext('2d'), bg = document.createElement('canvas'); bg.width = bg.height = 24; const bx = bg.getContext('2d');
+  const pipe = { zoom: 1, on: true, raf: 0, last: 0 };
+  pipe.draw = () => {
+    const vw = video.videoWidth, vh = video.videoHeight; if (!vw || video.readyState < 2) return;
+    const W = canvas.width, H = canvas.height, cover = Math.max(W / vw, H / vh), z = pipe.zoom, dw = vw * cover * z, dh = vh * cover * z;
+    if (z < 1) { bx.drawImage(video, 0, 0, bg.width, bg.height); ctx.imageSmoothingEnabled = true; ctx.drawImage(bg, 0, 0, W, H); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(0, 0, W, H); }
+    ctx.drawImage(video, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  };
+  const tick = ts => { if (!pipe.on) return; pipe.raf = requestAnimationFrame(tick); if (ts - pipe.last < 30) return; pipe.last = ts; pipe.draw(); };
+  pipe.raf = requestAnimationFrame(tick);
+  pipe.stop = () => { pipe.on = false; cancelAnimationFrame(pipe.raf); };
+  return pipe;
+}
+function applyOut() { const c = $('#tpCanvas'), [w, h] = outSize(); if (c.width !== w || c.height !== h) { c.width = w; c.height = h; } if (cam.pipe) cam.pipe.draw(); }
+let zoomSaveT;
+function setZoom(z) {
+  z = Math.round(Math.max(ZMIN, Math.min(ZMAX, +z || 1)) * 20) / 20;
+  S.settings.zoom = z; if (cam.pipe) { cam.pipe.zoom = z; cam.pipe.draw(); }
+  $('#zoomRange').value = z; $('#zoomV').textContent = z.toFixed(2).replace(/0$/, '') + '×';
+  clearTimeout(zoomSaveT); zoomSaveT = setTimeout(save, 400);
+  syncCamUI();
+}
+$('#zoomRange').oninput = e => setZoom(e.target.value);
+$('#zoomIn').onclick = () => setZoom(S.settings.zoom + 0.1);
+$('#zoomOut').onclick = () => setZoom(S.settings.zoom - 0.1);
+$('#zoomReset').onclick = () => setZoom(1);
 function syncCamUI() {
-  $$('#camFrameChips .cc').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === S.settings.camFrame)));
+  $$('#camRatioChips .cc').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === S.settings.camRatio)));
   $$('#camQualChips .cc').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === S.settings.camQuality)));
-  if ($('#setFrame')) { $('#setFrame').value = S.settings.camFrame; $('#setQual').value = S.settings.camQuality; }
-  tp.el.classList.toggle('fit-contain', S.settings.camFrame === 'wide');
-  const t = tp.stream && tp.stream.getVideoTracks()[0]; let st = {}; try { st = (t && t.getSettings()) || {}; } catch {}
-  $('#camInfo').textContent = st.width ? `${st.width}×${st.height}${st.frameRate ? ' · ' + Math.round(st.frameRate) + ' fps' : ''}` : '';
+  if ($('#setRatio')) { $('#setRatio').value = S.settings.camRatio; $('#setQual').value = S.settings.camQuality; }
+  const [w, h] = outSize(), z = S.settings.zoom || 1;
+  $('#camInfo').textContent = tp.stream ? `${w}×${h}` : '';
+  $('#zoomV').textContent = z.toFixed(2).replace(/0$/, '') + '×';
 }
-function setupZoom() {
-  const t = tp.stream && tp.stream.getVideoTracks()[0]; let caps = {}; try { caps = (t && t.getCapabilities && t.getCapabilities()) || {}; } catch {}
-  const z = caps.zoom, row = $('#zoomRow');
-  if (!z || !(z.max > z.min)) { row.hidden = true; return; }
-  const r = $('#zoomRange'); r.min = z.min; r.max = z.max; r.step = z.step || 0.1;
-  let cur = z.min; try { cur = t.getSettings().zoom || z.min; } catch {}
-  r.value = cur; $('#zoomV').textContent = (+cur).toFixed(1) + '×'; row.hidden = false;
-}
-$('#zoomRange').oninput = async e => {
-  const t = tp.stream && tp.stream.getVideoTracks()[0]; if (!t) return;
-  try { await t.applyConstraints({ advanced: [{ zoom: +e.target.value }] }); } catch {}
-  $('#zoomV').textContent = (+e.target.value).toFixed(1) + '×';
-};
-async function reopenCam() { if (tp.rec || tp.count || !tp.stream) return; stopCam(); await startCam(); }
-function setCam(key, val) { S.settings[key] = val; save(); syncCamUI(); reopenCam(); }
-$('#camFrameChips').onclick = e => { const b = e.target.closest('.cc'); if (b && !tp.rec) setCam('camFrame', b.dataset.v); };
-$('#camQualChips').onclick = e => { const b = e.target.closest('.cc'); if (b && !tp.rec) setCam('camQuality', b.dataset.v); };
+function setCam(key, val) { if (tp.rec) return; S.settings[key] = val; save(); applyOut(); syncCamUI(); }
+$('#camRatioChips').onclick = e => { const b = e.target.closest('.cc'); if (b) setCam('camRatio', b.dataset.v); };
+$('#camQualChips').onclick = e => { const b = e.target.closest('.cc'); if (b) setCam('camQuality', b.dataset.v); };
 
 async function startCam() {
   if (tp.stream) return true;
@@ -1104,17 +1136,20 @@ async function startCam() {
     });
     t.addEventListener('mute', () => { if (tp.rec && tp.stream === stream) toast('Kamera terhenti sementara oleh iPhone.', 2500); });
   });
-  const v = $('#tpVideo'); v.srcObject = stream; v.hidden = false; $('#tpScrim').hidden = false;
+  const v = $('#tpVideo'); v.srcObject = stream; $('#tpCanvas').hidden = false; $('#tpScrim').hidden = false;
   try { await v.play(); } catch {}
+  applyOut();
+  cam.pipe = makePipe($('#tpCanvas'), v); cam.pipe.zoom = Math.max(ZMIN, Math.min(ZMAX, S.settings.zoom || 1));
   tp.el.classList.add('cam'); $('#tgCam').setAttribute('aria-pressed', 'true');
-  setupZoom(); syncCamUI();
+  setZoom(cam.pipe.zoom);
   return true;
 }
 function stopCam() {
+  if (cam.pipe) { cam.pipe.stop(); cam.pipe = null; }
   if (tp.stream) tp.stream.getTracks().forEach(t => t.stop());
-  tp.stream = null; const v = $('#tpVideo'); v.srcObject = null; v.hidden = true; $('#tpScrim').hidden = true;
+  tp.stream = null; const v = $('#tpVideo'); v.srcObject = null; $('#tpCanvas').hidden = true; $('#tpScrim').hidden = true;
   tp.el.classList.remove('cam'); $('#tgCam').setAttribute('aria-pressed', 'false');
-  $('#zoomRow').hidden = true; $('#camInfo').textContent = '';
+  $('#camInfo').textContent = '';
 }
 $('#tgCam').onclick = () => { if (tp.rec) return; tp.stream ? stopCam() : startCam(); };
 
@@ -1142,10 +1177,17 @@ async function startRec() {
 function beginRecording() {
   const stream = tp.stream;
   if (!stream || stream.getTracks().some(t => t.readyState !== 'live')) { recFail('Kamera atau mikrofon terputus sebelum rekaman dimulai.', 'Track tidak aktif'); pauseTP(); return; }
-  let made;
-  try { made = newRecorder(stream); } catch (e) { recFail('Perekam video tidak bisa dibuat di browser ini.', errText(e)); pauseTP(); return; }
+  const cv = $('#tpCanvas');
+  if (!cam.pipe || !cv.captureStream) { recFail('Browser ini tidak bisa merekam dari kanvas.', 'canvas.captureStream tidak tersedia'); pauseTP(); return; }
+  cam.pipe.draw();
+  let made, cs, out;
+  try {
+    cs = cv.captureStream(30);
+    out = new MediaStream([...cs.getVideoTracks(), ...stream.getAudioTracks()]);
+    made = newRecorder(out);
+  } catch (e) { if (cs) cs.getTracks().forEach(t => t.stop()); recFail('Perekam video tidak bisa dibuat di browser ini.', errText(e)); pauseTP(); return; }
   const rec = made.rec;
-  const job = { rec, chunks: [], err: null, done: false, start: performance.now(), dur: 0, mime: made.mime };
+  const job = { rec, cs, chunks: [], err: null, done: false, start: performance.now(), dur: 0, mime: made.mime };
   rec.ondataavailable = e => { if (e.data && e.data.size) job.chunks.push(e.data); };
   rec.onerror = e => { job.err = (e && e.error) || e || new Error('Perekam melaporkan galat'); if (tp.rec === job) stopRec(); };
   rec.onstop = () => finishRec(job);
@@ -1167,6 +1209,7 @@ function stopRec() {
 }
 async function finishRec(job, extraErr) {
   if (job.done) return; job.done = true;
+  if (job.cs) job.cs.getTracks().forEach(t => t.stop());
   const err = job.err || extraErr;
   if (!job.dur) job.dur = (performance.now() - job.start) / 1000;
   if (!job.chunks.length) { recFail('Rekaman kosong, tidak ada video yang tersimpan.', errText(err) || 'Perekam tidak mengirim data'); return; }
@@ -1295,18 +1338,23 @@ $('#btnDiag').onclick = async e => {
   if (!canCam) { log('Kamera: tidak tersedia di halaman ini'); return; }
   btn.disabled = true; let stream;
   try { stream = await openStream(); } catch (err) { log('Kamera GAGAL: ' + errText(err)); btn.disabled = false; return; }
-  const t = stream.getVideoTracks()[0]; let st = {}, caps = {}; try { st = t.getSettings(); caps = t.getCapabilities ? t.getCapabilities() : {}; } catch {}
-  log(`Kamera: ${st.width}×${st.height} @ ${Math.round(st.frameRate || 0)} fps (diminta ${camSpec().w}×${camSpec().h})`);
-  log('Zoom kamera: ' + (caps.zoom ? caps.zoom.min + '–' + caps.zoom.max + '×' : 'tidak didukung iPhone untuk kamera depan'));
+  const t = stream.getVideoTracks()[0]; let st = {}; try { st = t.getSettings(); } catch {}
+  log(`Sumber kamera: ${st.width}×${st.height} @ ${Math.round(st.frameRate || 0)} fps`);
+  log(`Hasil rekaman: ${outSize().join('×')} (rasio ${S.settings.camRatio}, zoom ${(S.settings.zoom || 1)}×)`);
   log('Mikrofon: ' + (stream.getAudioTracks().length ? 'ada' : 'TIDAK ADA'));
+  log('Kanvas captureStream: ' + (HTMLCanvasElement.prototype.captureStream ? 'ada' : 'TIDAK ADA'));
   const vid = document.createElement('video'); vid.muted = true; vid.playsInline = true; vid.srcObject = stream;
   vid.style.cssText = 'position:fixed;width:2px;height:2px;opacity:0;pointer-events:none'; document.body.appendChild(vid); try { await vid.play(); } catch {}
+  const cv = document.createElement('canvas'); cv.width = 360; cv.height = 640; cv.style.cssText = 'position:fixed;width:2px;height:2px;opacity:0;pointer-events:none'; document.body.appendChild(cv);
+  const pipe = makePipe(cv, vid); await new Promise(r => setTimeout(r, 400));
+  let testStream = stream;
+  if (cv.captureStream) { try { testStream = new MediaStream([...cv.captureStream(30).getVideoTracks(), ...stream.getAudioTracks()]); } catch (err) { log('Kanvas gagal: ' + errText(err)); } }
   if (window.MediaRecorder) {
     log('Uji rekam 3 detik…');
-    try { const r = await testRecord(stream); log(`Hasil: ${r.size} byte, ${r.type || 'tipe kosong'}, ${r.chunks} bagian`); log(r.size > 20000 ? 'Perekaman: OK' : 'Perekaman: file terlalu kecil, ada masalah'); }
+    try { const r = await testRecord(testStream); log(`Hasil: ${r.size} byte, ${r.type || 'tipe kosong'}, ${r.chunks} bagian`); log(r.size > 20000 ? 'Perekaman: OK' : 'Perekaman: file terlalu kecil, ada masalah'); }
     catch (err) { log('Perekaman GAGAL: ' + errText(err)); }
   }
-  vid.remove(); stream.getTracks().forEach(x => x.stop()); btn.disabled = false;
+  pipe.stop(); cv.remove(); vid.remove(); stream.getTracks().forEach(x => x.stop()); btn.disabled = false;
 };
 
 /* ================= mulai ================= */
