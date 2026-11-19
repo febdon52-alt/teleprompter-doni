@@ -1,0 +1,422 @@
+[
+ {
+  "key": "bisnis",
+  "label": "Bisnis & jualan",
+  "audience": "kamu yang jualan online",
+  "activity": "jualan online",
+  "goal": "menaikkan orderan",
+  "problem": "toko sepi pembeli",
+  "past": "Dulu tokoku sepi banget, sehari cuma satu dua orderan.",
+  "win": "orderan tokoku naik",
+  "tips": [
+   [
+    "Foto produk pakai cahaya jendela",
+    "Cahaya alami dari samping bikin produk terlihat jelas dan lebih mahal. Tidak perlu lampu studio.",
+    "memotret produk di ruangan yang gelap"
+   ],
+   [
+    "Tulis manfaat, bukan cuma spesifikasi",
+    "Orang tidak membeli bahan katun tiga puluh s. Mereka membeli kaos yang adem dipakai seharian.",
+    "cuma menulis spesifikasi produk"
+   ],
+   [
+    "Balas chat dalam lima menit",
+    "Pembeli yang dibalas cepat jauh lebih mungkin jadi transaksi. Siapkan template jawaban untuk pertanyaan yang sering muncul.",
+    "membiarkan chat calon pembeli menunggu berjam-jam"
+   ],
+   [
+    "Minta testimoni dari pembeli yang puas",
+    "Testimoni asli adalah bukti paling kuat. Minta foto produk saat barang sudah diterima.",
+    "tidak pernah meminta ulasan"
+   ],
+   [
+    "Fokus ke satu produk andalan",
+    "Satu produk yang dikenal orang lebih kuat daripada seratus produk yang biasa saja.",
+    "menjual terlalu banyak produk sekaligus"
+   ],
+   [
+    "Posting konsisten di jam ramai",
+    "Coba jam makan siang dan jam tujuh sampai sembilan malam, lalu lihat jam mana yang paling banyak interaksinya.",
+    "posting hanya kalau sedang ingat"
+   ]
+  ]
+ },
+ {
+  "key": "keuangan",
+  "label": "Keuangan",
+  "audience": "anak muda yang gajinya cepat habis",
+  "activity": "mengatur gaji",
+  "goal": "bisa menabung tiap bulan",
+  "problem": "gaji habis sebelum akhir bulan",
+  "past": "Dulu gajiku selalu habis sebelum tanggal dua puluh.",
+  "win": "aku akhirnya bisa menabung tiap bulan",
+  "tips": [
+   [
+    "Bayar dirimu sendiri dulu",
+    "Begitu gajian, langsung pindahkan sepuluh sampai dua puluh persen ke rekening tabungan yang terpisah.",
+    "menabung dari sisa uang di akhir bulan"
+   ],
+   [
+    "Catat pengeluaran selama tiga puluh hari",
+    "Kamu tidak bisa memperbaiki yang tidak kamu ukur. Catat semuanya, termasuk jajan kecil.",
+    "tidak tahu uangnya pergi ke mana"
+   ],
+   [
+    "Siapkan dana darurat",
+    "Targetkan tiga sampai enam kali pengeluaran bulanan, dan simpan di tempat yang mudah dicairkan.",
+    "tidak punya dana darurat sama sekali"
+   ],
+   [
+    "Hindari cicilan untuk barang konsumtif",
+    "Paylater untuk barang yang nilainya turun hanya memindahkan masalah ke bulan depan.",
+    "memakai paylater untuk gaya hidup"
+   ],
+   [
+    "Tunggu 48 jam sebelum belanja",
+    "Untuk barang yang bukan kebutuhan, tunda dua hari. Sering kali keinginannya hilang sendiri.",
+    "belanja impulsif setiap ada diskon"
+   ],
+   [
+    "Mulai investasi dari nominal kecil",
+    "Reksa dana pasar uang bisa dimulai dari sepuluh ribu rupiah. Yang penting rutin, bukan besar.",
+    "menunggu uang banyak baru mulai investasi"
+   ]
+  ]
+ },
+ {
+  "key": "kuliner",
+  "label": "Kuliner & resep",
+  "audience": "kamu yang suka masak di rumah",
+  "activity": "masak di rumah",
+  "goal": "bikin masakan rumahan seenak restoran",
+  "problem": "masakan terasa hambar",
+  "past": "Dulu masakanku selalu terasa hambar, padahal bumbunya sudah banyak.",
+  "win": "masakanku dipuji satu rumah",
+  "tips": [
+   [
+    "Panaskan wajan sampai benar-benar panas",
+    "Bahan yang masuk ke wajan dingin akan mengeluarkan air dan jadi lembek. Tunggu sampai wajan panas, baru masukkan minyak.",
+    "langsung memasukkan bahan ke wajan yang belum panas"
+   ],
+   [
+    "Tumis bumbu sampai benar-benar matang",
+    "Bumbu halus yang belum matang bikin rasa langu. Tumis sampai minyaknya terpisah dan aromanya harum.",
+    "menumis bumbu cuma sebentar"
+   ],
+   [
+    "Beri garam sedikit demi sedikit",
+    "Bumbui di beberapa tahap dan cicipi setiap tahap. Menambah selalu lebih mudah daripada mengurangi.",
+    "menabur garam sekaligus di akhir"
+   ],
+   [
+    "Jangan memenuhi wajan",
+    "Masak dalam beberapa tahap supaya bahan benar-benar tergoreng, bukan terebus.",
+    "memasukkan semua bahan sekaligus"
+   ],
+   [
+    "Tambahkan rasa asam di akhir",
+    "Sedikit perasan jeruk nipis di akhir membuat rasa masakan lebih hidup.",
+    "melupakan rasa asam"
+   ],
+   [
+    "Diamkan daging sebelum dipotong",
+    "Tunggu sekitar lima menit supaya cairannya tidak keluar semua dan daging tetap juicy.",
+    "langsung memotong daging yang baru diangkat"
+   ]
+  ]
+ },
+ {
+  "key": "produktif",
+  "label": "Produktivitas",
+  "audience": "pelajar dan pekerja yang gampang menunda",
+  "activity": "belajar dan bekerja",
+  "goal": "lebih fokus dan cepat selesai",
+  "problem": "kerjaan menumpuk",
+  "past": "Dulu aku jago banget menunda, deadline selalu dikerjakan semalam suntuk.",
+  "win": "kerjaanku selesai jauh lebih cepat",
+  "tips": [
+   [
+    "Pakai teknik Pomodoro",
+    "Fokus dua puluh lima menit, istirahat lima menit. Otak lebih mudah mulai kalau tahu ada jeda.",
+    "memaksa fokus berjam-jam tanpa jeda"
+   ],
+   [
+    "Kerjakan tugas tersulit di pagi hari",
+    "Energi dan fokus biasanya paling tinggi di awal hari. Simpan pekerjaan ringan untuk sore.",
+    "menghabiskan pagi untuk membalas chat"
+   ],
+   [
+    "Taruh HP di ruangan lain",
+    "Penelitian menunjukkan HP yang terlihat saja sudah mengurangi fokus. Jauhkan dari jangkauan.",
+    "bekerja dengan HP di samping laptop"
+   ],
+   [
+    "Pecah tugas besar jadi langkah sepuluh menit",
+    "Tugas yang terasa besar bikin malas mulai. Tulis langkah pertama yang bisa selesai dalam sepuluh menit.",
+    "menulis to-do yang terlalu besar"
+   ],
+   [
+    "Tulis tiga prioritas setiap malam",
+    "Besok paginya kamu tidak perlu berpikir mau mulai dari mana.",
+    "memulai hari tanpa rencana"
+   ],
+   [
+    "Jelaskan ulang apa yang kamu pelajari",
+    "Kalau kamu bisa menjelaskannya dengan bahasa sederhana, berarti kamu benar-benar paham.",
+    "cuma membaca ulang catatan"
+   ]
+  ]
+ },
+ {
+  "key": "teknologi",
+  "label": "Teknologi & HP",
+  "audience": "pengguna iPhone dan Android",
+  "activity": "pakai HP sehari-hari",
+  "goal": "bikin HP lebih awet dan kencang",
+  "problem": "baterai cepat habis dan memori penuh",
+  "past": "Dulu HP-ku jam dua siang sudah lowbat, memorinya juga penuh terus.",
+  "win": "HP-ku jadi awet seharian",
+  "tips": [
+   [
+    "Matikan refresh aplikasi di latar belakang",
+    "Di iPhone, buka Pengaturan, Umum, Refresh App di Latar. Matikan untuk aplikasi yang tidak penting.",
+    "membiarkan semua aplikasi aktif di latar belakang"
+   ],
+   [
+    "Hapus aplikasi yang tidak dipakai sebulan",
+    "Aplikasi yang tidak dipakai tetap memakan memori dan kadang tetap berjalan.",
+    "menyimpan puluhan aplikasi yang tidak pernah dibuka"
+   ],
+   [
+    "Cadangkan foto lalu kosongkan galeri",
+    "Foto dan video adalah pemakan memori terbesar. Cadangkan ke cloud atau laptop secara rutin.",
+    "menyimpan semua video di galeri"
+   ],
+   [
+    "Turunkan kecerahan dan pakai mode gelap",
+    "Layar adalah pemakai baterai terbesar. Kecerahan otomatis dan mode gelap sangat membantu.",
+    "memakai kecerahan maksimal sepanjang hari"
+   ],
+   [
+    "Update sistem secara rutin",
+    "Pembaruan sistem membawa perbaikan keamanan dan sering kali efisiensi baterai.",
+    "menunda update berbulan-bulan"
+   ],
+   [
+    "Aktifkan verifikasi dua langkah",
+    "Akun yang diretas jauh lebih repot daripada HP lemot. Aktifkan untuk email dan media sosial.",
+    "memakai satu kata sandi untuk semua akun"
+   ]
+  ]
+ },
+ {
+  "key": "kecantikan",
+  "label": "Skincare",
+  "audience": "kamu yang baru mulai skincare",
+  "activity": "pakai skincare",
+  "goal": "punya kulit sehat dan cerah",
+  "problem": "kulit kusam dan berjerawat",
+  "past": "Dulu kulitku kusam dan jerawatan, padahal produknya sudah bertumpuk.",
+  "win": "kulitku jauh lebih tenang",
+  "tips": [
+   [
+    "Pakai sunscreen setiap hari",
+    "Bahkan saat di dalam ruangan atau cuaca mendung. Ulangi setiap beberapa jam kalau beraktivitas di luar.",
+    "memakai sunscreen hanya saat ke pantai"
+   ],
+   [
+    "Mulai dari tiga langkah dasar",
+    "Sabun cuci muka, pelembap, dan sunscreen. Kuasai ini dulu sebelum menambah produk lain.",
+    "membeli sepuluh produk sekaligus"
+   ],
+   [
+    "Coba satu produk baru dalam satu waktu",
+    "Kalau kulit bereaksi, kamu tahu persis produk mana penyebabnya.",
+    "mencoba banyak produk baru bersamaan"
+   ],
+   [
+    "Lakukan uji tempel dulu",
+    "Oleskan sedikit di belakang telinga atau rahang selama beberapa hari sebelum dipakai ke seluruh wajah.",
+    "langsung memakai produk baru ke seluruh wajah"
+   ],
+   [
+    "Bersihkan wajah dua tahap setelah makeup",
+    "Pakai pembersih berbahan minyak dulu, lalu sabun cuci muka, supaya sisa makeup terangkat.",
+    "tidur tanpa menghapus makeup"
+   ],
+   [
+    "Jangan memencet jerawat",
+    "Memencet jerawat bisa meninggalkan bekas yang jauh lebih lama hilang daripada jerawatnya.",
+    "memencet jerawat setiap kali muncul"
+   ]
+  ]
+ },
+ {
+  "key": "sehat",
+  "label": "Kesehatan & olahraga",
+  "audience": "kamu yang mau mulai olahraga",
+  "activity": "olahraga",
+  "goal": "mulai bugar tanpa harus ke gym",
+  "problem": "semangat olahraga cuma bertahan seminggu",
+  "past": "Dulu semangat olahragaku cuma bertahan tiga hari, lalu berhenti lagi.",
+  "win": "aku rutin olahraga sampai sekarang",
+  "tips": [
+   [
+    "Mulai dari lima belas menit sehari",
+    "Durasi pendek membuat kebiasaan lebih mudah bertahan. Tambah pelan-pelan setelah dua minggu.",
+    "langsung latihan berat satu jam di hari pertama"
+   ],
+   [
+    "Jalan kaki setiap hari",
+    "Jalan kaki adalah olahraga paling murah dan paling mudah dijadikan kebiasaan.",
+    "meremehkan jalan kaki"
+   ],
+   [
+    "Latihan kekuatan dua kali seminggu",
+    "Push up, squat, dan plank sudah cukup untuk mulai. Otot yang kuat membantu tubuh lebih bugar.",
+    "cuma melakukan kardio"
+   ],
+   [
+    "Tidur cukup tujuh jam",
+    "Tubuh memperbaiki diri saat tidur. Kurang tidur membuat kamu lebih lapar dan lebih malas bergerak.",
+    "begadang lalu memaksa olahraga pagi"
+   ],
+   [
+    "Penuhi protein di setiap makan",
+    "Telur, tahu, tempe, ikan, atau ayam membantu kamu kenyang lebih lama dan mendukung otot.",
+    "makan nasi banyak tanpa lauk berprotein"
+   ],
+   [
+    "Siapkan baju olahraga dari malam",
+    "Semakin sedikit hambatan di pagi hari, semakin besar peluang kamu benar-benar berangkat.",
+    "menunggu mood untuk mulai olahraga"
+   ]
+  ]
+ },
+ {
+  "key": "parenting",
+  "label": "Parenting",
+  "audience": "orang tua dengan anak kecil",
+  "activity": "mendampingi anak",
+  "goal": "bikin anak lebih mau mendengar",
+  "problem": "anak sering tantrum",
+  "past": "Dulu tiap pagi rumah kami penuh drama, anak tantrum, aku ikut emosi.",
+  "win": "anakku jauh lebih mau mendengar",
+  "tips": [
+   [
+    "Validasi perasaannya dulu",
+    "Katakan, kamu kesal ya karena mainannya harus disimpan. Anak lebih tenang kalau perasaannya dimengerti.",
+    "langsung menyuruh anak berhenti menangis"
+   ],
+   [
+    "Beri dua pilihan, bukan perintah",
+    "Mau pakai baju merah atau biru? Anak merasa punya kendali, dan kamu tetap memegang arah.",
+    "memberi perintah tanpa pilihan"
+   ],
+   [
+    "Buat jadwal layar yang jelas",
+    "Batas yang jelas dan konsisten jauh lebih mudah diterima anak daripada larangan mendadak.",
+    "mengambil HP dari tangan anak secara tiba-tiba"
+   ],
+   [
+    "Bacakan buku sepuluh menit sebelum tidur",
+    "Rutinitas yang tenang membantu anak tidur lebih cepat dan memperkaya kosakatanya.",
+    "membiarkan anak menonton video sampai tertidur"
+   ],
+   [
+    "Puji usahanya, bukan hasilnya",
+    "Kamu tadi sabar sekali menyusun baloknya. Pujian seperti ini membuat anak berani mencoba.",
+    "hanya memuji anak saat menang"
+   ],
+   [
+    "Turunkan badan setinggi mata anak",
+    "Bicara sambil berjongkok membuat anak merasa didengar, bukan dimarahi dari atas.",
+    "menegur anak sambil berteriak dari jauh"
+   ]
+  ]
+ },
+ {
+  "key": "travel",
+  "label": "Traveling",
+  "audience": "kamu yang suka jalan-jalan hemat",
+  "activity": "traveling",
+  "goal": "liburan puas dengan budget hemat",
+  "problem": "budget liburan membengkak",
+  "past": "Dulu tiap pulang liburan, saldo tabunganku langsung terkuras.",
+  "win": "liburanku jadi jauh lebih hemat",
+  "tips": [
+   [
+    "Pantau harga tiket sejak jauh hari",
+    "Pasang notifikasi harga dan coba berangkat di hari kerja. Selisihnya bisa lumayan.",
+    "membeli tiket mendadak di musim libur"
+   ],
+   [
+    "Pilih penginapan dekat transportasi umum",
+    "Hemat ongkos dan waktu. Kadang penginapan sedikit lebih mahal justru lebih murah totalnya.",
+    "memilih penginapan murah yang jauh dari mana-mana"
+   ],
+   [
+    "Makan di tempat yang ramai warga lokal",
+    "Biasanya lebih murah, lebih enak, dan kamu dapat pengalaman yang asli.",
+    "selalu makan di restoran tempat wisata"
+   ],
+   [
+    "Bawa satu tas kabin saja",
+    "Bebas biaya bagasi, gerak lebih cepat, dan tidak repot di perjalanan.",
+    "membawa koper besar untuk tiga hari"
+   ],
+   [
+    "Buat jadwal yang longgar",
+    "Dua atau tiga tempat per hari sudah cukup. Sisakan waktu untuk istirahat dan hal tak terduga.",
+    "memadatkan sepuluh tempat dalam sehari"
+   ],
+   [
+    "Siapkan dana cadangan sepuluh persen",
+    "Selalu ada biaya tak terduga. Dengan cadangan, liburan tetap tenang.",
+    "menghabiskan semua budget di hari pertama"
+   ]
+  ]
+ },
+ {
+  "key": "diri",
+  "label": "Motivasi & diri",
+  "audience": "kamu yang lagi merasa stuck",
+  "activity": "mengejar tujuan",
+  "goal": "konsisten dan terus berkembang",
+  "problem": "merasa jalan di tempat",
+  "past": "Dulu aku merasa hidupku jalan di tempat, sementara orang lain terus maju.",
+  "win": "aku akhirnya konsisten",
+  "tips": [
+   [
+    "Bandingkan dirimu dengan dirimu kemarin",
+    "Orang lain punya titik mulai yang berbeda. Ukur kemajuanmu dari posisimu sendiri.",
+    "membandingkan diri dengan pencapaian orang lain di media sosial"
+   ],
+   [
+    "Perbaiki satu persen setiap hari",
+    "Perubahan kecil yang konsisten jauh lebih kuat daripada semangat besar yang cepat padam.",
+    "menunggu momen yang sempurna untuk berubah"
+   ],
+   [
+    "Selesaikan apa yang kamu mulai",
+    "Satu proyek yang selesai memberi kepercayaan diri lebih besar daripada sepuluh yang setengah jalan.",
+    "gonta-ganti tujuan setiap minggu"
+   ],
+   [
+    "Kurangi konsumsi, perbanyak karya",
+    "Batasi waktu scrolling, lalu pakai waktunya untuk membuat sesuatu, sekecil apa pun.",
+    "menghabiskan berjam-jam scrolling tanpa tujuan"
+   ],
+   [
+    "Cari lingkungan yang mendukung",
+    "Kita cenderung meniru kebiasaan orang-orang di sekitar kita. Pilih lingkaran yang membuatmu tumbuh.",
+    "bertahan di lingkungan yang meremehkan mimpimu"
+   ],
+   [
+    "Rayakan kemenangan kecil",
+    "Catat hal kecil yang berhasil setiap hari. Otak butuh bukti bahwa usahamu ada hasilnya.",
+    "hanya fokus pada yang belum tercapai"
+   ]
+  ]
+ }
+]

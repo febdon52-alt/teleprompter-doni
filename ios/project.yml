@@ -1,0 +1,60 @@
+name: BacaKamera
+options:
+  bundleIdPrefix: com.bacakamera
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  BacaKamera:
+    type: application
+    platform: iOS
+    sources:
+      - path: BacaKamera
+    info:
+      path: BacaKamera/Info.plist
+      properties:
+        CFBundleDisplayName: Baca Kamera
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIRequiresFullScreen: true
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        ITSAppUsesNonExemptEncryption: false
+        NSCameraUsageDescription: Kamera depan dipakai untuk merekam video Anda sambil membaca naskah.
+        NSMicrophoneUsageDescription: Mikrofon dipakai untuk merekam suara Anda bersama video.
+        NSPhotoLibraryAddUsageDescription: Video hasil rekaman disimpan ke app Foto Anda.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.bacakamera.app
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+  BacaKameraTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: BacaKameraTests
+    dependencies:
+      - target: BacaKamera
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.bacakamera.app.tests
+schemes:
+  BacaKamera:
+    build:
+      targets:
+        BacaKamera: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - BacaKameraTests

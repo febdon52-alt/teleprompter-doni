@@ -1,0 +1,5 @@
+BacaKamera.xcodeproj/
+build/
+DerivedData/
+*.ipa
+Payload/

@@ -3,6 +3,7 @@ name: Terbitkan ke GitHub Pages
 on:
   push:
     branches: [main]
+    paths-ignore: ['ios/**', '.github/workflows/ios.yml']
   workflow_dispatch:
 
 permissions:
@@ -22,9 +23,13 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Siapkan situs
+        run: |
+          mkdir _site
+          cp -r index.html manifest.webmanifest sw.js icons .nojekyll _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
