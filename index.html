@@ -111,6 +111,9 @@ ol.steps{margin:0;padding-left:20px;display:grid;gap:6px;color:#c9ced6}
 /* ---------- Teleprompter ---------- */
 .tp{position:fixed;inset:0;z-index:50;background:var(--tp-bg);color:var(--tp-fg);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
 .tp video{position:absolute;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none}
+.tp.direct.cam video{width:100%;height:100%;opacity:1;object-fit:contain;transform:scaleX(-1)}
+.tp.direct #zoomRow{display:none}
+.seg button:disabled{opacity:.35}
 .tp canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform:scaleX(-1)}
 .tp .scrim{position:absolute;inset:0;background:var(--scrim);pointer-events:none}
 .stage{position:absolute;inset:0;overflow:hidden}
@@ -131,7 +134,8 @@ ol.steps{margin:0;padding-left:20px;display:grid;gap:6px;color:#c9ced6}
 .readline::after{right:4px;border-right:12px solid var(--cue)}
 .tp-top{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 6px) max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));transition:opacity .35s}
 .tp-bot{position:absolute;bottom:0;left:0;right:0;display:grid;gap:12px;padding:12px max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 12px) max(14px,env(safe-area-inset-left,0px));background:var(--glass);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);transition:opacity .35s,transform .35s}
-.tp.immersive .tp-top,.tp.immersive .tp-bot{opacity:0;pointer-events:none}
+.tp.immersive .tp-top,.tp.immersive .tp-bot{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .35s,transform .35s,visibility 0s .35s}
+.tp.cam .tp-bot{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(15,18,23,.96)}
 .tp.immersive .tp-bot{transform:translateY(16px)}
 .tp-progress{position:absolute;left:0;top:0;height:3px;background:var(--cue);width:0}
 .iconbtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--glass);display:grid;place-items:center;flex:none;color:var(--tp-fg)}
@@ -285,8 +289,11 @@ pre.diag{margin:0;padding:10px;background:var(--ink);border:1px solid var(--line
         <div class="set"><label class="lbl" for="setRatio">Rasio video</label>
           <select id="setRatio"><option value="9:16">9:16 — vertikal penuh (TikTok, Reels, Shorts)</option><option value="3:4">3:4 — vertikal lebar, bidang pandang penuh</option><option value="4:5">4:5 — Instagram feed</option><option value="1:1">1:1 — persegi</option><option value="16:9">16:9 — horizontal (YouTube)</option></select>
           <p class="hint">Di teleprompter, geser slider <b>Zoom</b> atau cubit layar dengan dua jari untuk zoom in/out. Di bawah 1× gambar mengecil dan tepinya diisi buram. Zoom dan rasio langsung terlihat di pratinjau dan ikut terekam.</p></div>
-        <div class="set"><label class="lbl" for="setQual">Kualitas video</label>
-          <select id="setQual"><option value="hd">Jelas (1080p)</option><option value="sd">Hemat (720p)</option></select></div>
+        <div class="set"><label class="lbl" for="setRes">Kualitas video</label>
+          <select id="setRes"><option value="1080">Jelas — 1080p (berat, bisa tersendat)</option><option value="720">Seimbang — 720p (disarankan)</option><option value="540">Ringan — 540p</option></select></div>
+        <div class="set"><label class="lbl" for="setMode">Mode rekam</label>
+          <select id="setMode"><option value="canvas">Fleksibel — semua rasio dan zoom manual</option><option value="direct">Ringan — langsung dari kamera (9:16 atau 3:4, tanpa zoom)</option></select>
+          <p class="hint">Kalau aplikasi terasa berat atau macet saat merekam, pilih <b>Ringan</b> dan kualitas <b>720p</b> atau <b>540p</b>.</p></div>
         <div class="row"><button class="btn grow" id="btnDiag" type="button">Uji kamera &amp; rekam</button><button class="btn grow" id="btnNativeCam" type="button">Kamera iPhone bawaan</button></div>
         <pre class="diag" id="diagOut" hidden></pre>
       </div>
@@ -336,7 +343,7 @@ pre.diag{margin:0;padding:10px;background:var(--ink);border:1px solid var(--line
       </div>
       <div class="cc-row">
         <span class="cc-lbl">Mutu</span>
-        <div class="seg" id="camQualChips" role="group" aria-label="Kualitas video"><button type="button" class="cc" data-v="hd">1080p</button><button type="button" class="cc" data-v="sd">720p</button></div>
+        <div class="seg" id="camResChips" role="group" aria-label="Kualitas video"><button type="button" class="cc" data-v="1080">1080p</button><button type="button" class="cc" data-v="720">720p</button><button type="button" class="cc" data-v="540">540p</button></div>
         <span class="meta" id="camInfo"></span>
       </div>
       <div class="cc-row" id="zoomRow"><span class="cc-lbl">Zoom</span><button type="button" class="zb" id="zoomOut" aria-label="Zoom out">−</button><input type="range" id="zoomRange" min="0.6" max="3" step="0.05" value="1" aria-label="Zoom"><button type="button" class="zb" id="zoomIn" aria-label="Zoom in">+</button><button type="button" class="zb" id="zoomReset" aria-label="Zoom 1x">1×</button><span class="meta" id="zoomV">1.0×</span></div>
@@ -427,7 +434,7 @@ try { S = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { S = null; }
 if (!S || typeof S !== 'object') S = {};
 S.scripts = Array.isArray(S.scripts) ? S.scripts : [];
 if (S.settings && S.settings.camFrame && !S.settings.camRatio) S.settings.camRatio = S.settings.camFrame === 'full' ? '9:16' : '3:4';
-S.settings = Object.assign({ speed: 5, font: 40, countdown: 3, mirror: false, center: false, apiKey: '', model: 'claude-opus-5-5', offline: false, camRatio: '3:4', camQuality: 'hd', zoom: 1 }, S.settings || {});
+S.settings = Object.assign({ speed: 5, font: 40, countdown: 3, mirror: false, center: false, apiKey: '', model: 'claude-opus-5-5', offline: false, camRatio: '3:4', camMode: 'canvas', camRes: '720', zoom: 1 }, S.settings || {});
 S.sel = Object.assign({ niche: 'bisnis', topic: '', plat: 'short', dur: 60, tone: 'santai' }, S.sel || {});
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
 
@@ -892,7 +899,8 @@ function bindSettings() {
   $('#setKey').value = st.apiKey; $('#setKey').oninput = e => { st.apiKey = e.target.value; save(); renderEngine(); };
   $('#setModel').value = st.model; $('#setModel').onchange = e => { st.model = e.target.value; save(); };
   $('#setRatio').value = st.camRatio; $('#setRatio').onchange = e => setCam('camRatio', e.target.value);
-  $('#setQual').value = st.camQuality; $('#setQual').onchange = e => setCam('camQuality', e.target.value);
+  $('#setRes').value = st.camRes; $('#setRes').onchange = e => setCam('camRes', e.target.value);
+  $('#setMode').value = st.camMode; $('#setMode').onchange = e => setCam('camMode', e.target.value);
   let wipe = false;
   $('#btnWipe').onclick = e => {
     if (!wipe) { wipe = true; e.target.textContent = 'Ketuk lagi untuk menghapus semua'; setTimeout(() => { wipe = false; e.target.textContent = 'Hapus semua naskah'; }, 3000); return; }
@@ -931,13 +939,15 @@ function layoutTP() {
   $('#tgAlign').setAttribute('aria-pressed', String(!!S.settings.center));
   applyTP();
 }
+const elProg = $('#tpProg'), elTime = $('#tpTime'), elRec = $('#recTime'); let lastProg = -1, lastTime = '', lastRec = '';
 function applyTP() {
   const y = tp.lineY - S.settings.font * 0.68 - tp.pos;
   tp.text.style.transform = `translate3d(0,${y}px,0)`;
-  $('#tpProg').style.width = (tp.max ? tp.pos / tp.max * 100 : 0) + '%';
-  const rest = (tp.max - tp.pos) / pxPerSec();
-  $('#tpTime').textContent = `${fmtTime(tp.played)} / sisa ${fmtTime(rest)}`;
-  if (tp.rec) $('#recTime').textContent = fmtTime((performance.now() - tp.recStart) / 1000);
+  const pr = Math.round((tp.max ? tp.pos / tp.max * 100 : 0) * 10) / 10;
+  if (pr !== lastProg) { lastProg = pr; elProg.style.width = pr + '%'; }
+  const t = `${fmtTime(tp.played)} / sisa ${fmtTime((tp.max - tp.pos) / pxPerSec())}`;
+  if (t !== lastTime) { lastTime = t; elTime.textContent = t; }
+  if (tp.rec) { const r = fmtTime((performance.now() - tp.recStart) / 1000); if (r !== lastRec) { lastRec = r; elRec.textContent = r; } }
 }
 function frame(ts) {
   if (!tp.playing) return;
@@ -1047,22 +1057,27 @@ function recFail(msg, detail) {
   $('#recErr').hidden = false;
 }
 
-/* rasio, kualitas, zoom — hasil digambar lewat kanvas supaya pratinjau = rekaman */
+/* rasio, mutu, zoom. Mode Fleksibel: gambar disusun lewat kanvas. Mode Ringan: rekam langsung dari kamera. */
 const RATIOS = { '9:16': [9, 16], '3:4': [3, 4], '4:5': [4, 5], '1:1': [1, 1], '16:9': [16, 9] };
+const DIRECT_OK = ['9:16', '3:4'];
+const isDirect = () => S.settings.camMode === 'direct';
+const effRatio = () => (isDirect() && !DIRECT_OK.includes(S.settings.camRatio)) ? '3:4' : S.settings.camRatio;
 function outSize() {
-  const [a, b] = RATIOS[S.settings.camRatio] || RATIOS['3:4'], short = S.settings.camQuality === 'sd' ? 720 : 1080;
+  const [a, b] = RATIOS[effRatio()] || RATIOS['3:4'], short = +S.settings.camRes || 720;
   const w = a >= b ? Math.round(short * a / b) : short, h = a >= b ? short : Math.round(short * b / a);
   return [w - w % 2, h - h % 2];
 }
-const videoBits = () => { const [w, h] = outSize(); return Math.min(10e6, Math.max(3e6, w * h * 4)); };
+const videoBits = () => { const [w, h] = outSize(); return Math.min(10e6, Math.max(2.5e6, Math.round(w * h * (isDirect() ? 4 : 3.5)))); };
 const cam = { pipe: null };
 const ZMIN = 0.6, ZMAX = 3;
 async function openStream() {
-  // sumber selalu 3:4 terlebar; rasio akhir dipotong dari sini
   const audio = { echoCancellation: true, noiseSuppression: true };
+  let w, h, ar;
+  if (isDirect()) { [w, h] = outSize(); ar = w / h; }
+  else { const big = String(S.settings.camRes) === '1080'; w = big ? 1440 : 1080; h = big ? 1920 : 1440; ar = 3 / 4; } // sumber 3:4 terlebar; rasio akhir dipotong dari sini
   const tries = [
-    { video: { facingMode: 'user', width: { ideal: 1440 }, height: { ideal: 1920 }, aspectRatio: { ideal: 3 / 4 }, frameRate: { ideal: 30 } }, audio },
-    { video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1440 } }, audio },
+    { video: { facingMode: 'user', width: { ideal: w }, height: { ideal: h }, aspectRatio: { ideal: ar }, frameRate: { ideal: 30 } }, audio },
+    { video: { facingMode: 'user', width: { ideal: w }, height: { ideal: h } }, audio },
     { video: { facingMode: 'user' }, audio: true },
   ];
   let err = null;
@@ -1073,25 +1088,36 @@ async function openStream() {
   throw err;
 }
 function makePipe(canvas, video) {
-  const ctx = canvas.getContext('2d'), bg = document.createElement('canvas'); bg.width = bg.height = 24; const bx = bg.getContext('2d');
-  const pipe = { zoom: 1, on: true, raf: 0, last: 0 };
+  const ctx = canvas.getContext('2d', { alpha: false }), bg = document.createElement('canvas'); bg.width = bg.height = 24; const bx = bg.getContext('2d');
+  const pipe = { zoom: 1, on: true, raf: 0, last: 0, gap: 30, n: 0, cap: null };
   pipe.draw = () => {
     const vw = video.videoWidth, vh = video.videoHeight; if (!vw || video.readyState < 2) return;
     const W = canvas.width, H = canvas.height, cover = Math.max(W / vw, H / vh), z = pipe.zoom, dw = vw * cover * z, dh = vh * cover * z;
     if (z < 1) { bx.drawImage(video, 0, 0, bg.width, bg.height); ctx.imageSmoothingEnabled = true; ctx.drawImage(bg, 0, 0, W, H); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(0, 0, W, H); }
     ctx.drawImage(video, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    pipe.n++;
+    if (pipe.cap) { try { pipe.cap.requestFrame(); } catch {} }  // satu bingkai tepat saat digambar, tanpa pengambilan berulang
   };
-  const tick = ts => { if (!pipe.on) return; pipe.raf = requestAnimationFrame(tick); if (ts - pipe.last < 30) return; pipe.last = ts; pipe.draw(); };
+  const tick = ts => { if (!pipe.on) return; pipe.raf = requestAnimationFrame(tick); if (ts - pipe.last < pipe.gap) return; pipe.last = ts; pipe.draw(); };
   pipe.raf = requestAnimationFrame(tick);
-  pipe.stop = () => { pipe.on = false; cancelAnimationFrame(pipe.raf); };
+  pipe.stop = () => { pipe.on = false; pipe.cap = null; cancelAnimationFrame(pipe.raf); };
   return pipe;
+}
+// Pengawas beban: bila gambar jatuh di bawah ~18 fps, turunkan kecepatan gambar supaya rekaman tidak macet
+function startWatch(job) {
+  let lastN = cam.pipe ? cam.pipe.n : 0, lastT = performance.now(), bad = 0;
+  job.wd = setInterval(() => {
+    const p = cam.pipe; if (!p || tp.rec !== job) return;
+    const now = performance.now(), fps = (p.n - lastN) / ((now - lastT) / 1000); lastN = p.n; lastT = now;
+    if (fps < 18 && p.gap < 70) { if (++bad >= 2) { bad = 0; p.gap = p.gap < 40 ? 45 : 70; toast('Beban berat: kecepatan gambar diturunkan supaya rekaman tetap lancar.', 3500); } } else bad = 0;
+  }, 1000);
 }
 function applyOut() { const c = $('#tpCanvas'), [w, h] = outSize(); if (c.width !== w || c.height !== h) { c.width = w; c.height = h; } if (cam.pipe) cam.pipe.draw(); }
 let zoomSaveT;
 function setZoom(z) {
   z = Math.round(Math.max(ZMIN, Math.min(ZMAX, +z || 1)) * 20) / 20;
   S.settings.zoom = z; if (cam.pipe) { cam.pipe.zoom = z; cam.pipe.draw(); }
-  $('#zoomRange').value = z; $('#zoomV').textContent = z.toFixed(2).replace(/0$/, '') + '×';
+  $('#zoomRange').value = z;
   clearTimeout(zoomSaveT); zoomSaveT = setTimeout(save, 400);
   syncCamUI();
 }
@@ -1100,16 +1126,24 @@ $('#zoomIn').onclick = () => setZoom(S.settings.zoom + 0.1);
 $('#zoomOut').onclick = () => setZoom(S.settings.zoom - 0.1);
 $('#zoomReset').onclick = () => setZoom(1);
 function syncCamUI() {
-  $$('#camRatioChips .cc').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === S.settings.camRatio)));
-  $$('#camQualChips .cc').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === S.settings.camQuality)));
-  if ($('#setRatio')) { $('#setRatio').value = S.settings.camRatio; $('#setQual').value = S.settings.camQuality; }
-  const [w, h] = outSize(), z = S.settings.zoom || 1;
-  $('#camInfo').textContent = tp.stream ? `${w}×${h}` : '';
+  const direct = isDirect(), [w, h] = outSize(), z = S.settings.zoom || 1;
+  $$('#camRatioChips .cc').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.v === effRatio())); b.disabled = direct && !DIRECT_OK.includes(b.dataset.v); });
+  $$('#camResChips .cc').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(S.settings.camRes))));
+  if ($('#setRatio')) { $('#setRatio').value = effRatio(); $('#setRes').value = String(S.settings.camRes); $('#setMode').value = S.settings.camMode; }
+  tp.el.classList.toggle('direct', direct);
+  $('#camInfo').textContent = tp.stream ? `${w}×${h}${direct ? ' · ringan' : ''}` : '';
   $('#zoomV').textContent = z.toFixed(2).replace(/0$/, '') + '×';
 }
-function setCam(key, val) { if (tp.rec) return; S.settings[key] = val; save(); applyOut(); syncCamUI(); }
-$('#camRatioChips').onclick = e => { const b = e.target.closest('.cc'); if (b) setCam('camRatio', b.dataset.v); };
-$('#camQualChips').onclick = e => { const b = e.target.closest('.cc'); if (b) setCam('camQuality', b.dataset.v); };
+async function reopenCam() { if (tp.rec || tp.count || !tp.stream) return; stopCam(); await startCam(); }
+function setCam(key, val) {
+  if (tp.rec) return;
+  S.settings[key] = val;
+  if (isDirect() && !DIRECT_OK.includes(S.settings.camRatio)) S.settings.camRatio = '3:4';
+  save(); syncCamUI();
+  if (tp.stream && (key === 'camMode' || key === 'camRes' || (isDirect() && key === 'camRatio'))) reopenCam(); else applyOut();
+}
+$('#camRatioChips').onclick = e => { const b = e.target.closest('.cc'); if (b && !b.disabled) setCam('camRatio', b.dataset.v); };
+$('#camResChips').onclick = e => { const b = e.target.closest('.cc'); if (b) setCam('camRes', b.dataset.v); };
 
 async function startCam() {
   if (tp.stream) return true;
@@ -1136,12 +1170,15 @@ async function startCam() {
     });
     t.addEventListener('mute', () => { if (tp.rec && tp.stream === stream) toast('Kamera terhenti sementara oleh iPhone.', 2500); });
   });
-  const v = $('#tpVideo'); v.srcObject = stream; $('#tpCanvas').hidden = false; $('#tpScrim').hidden = false;
-  try { await v.play(); } catch {}
-  applyOut();
-  cam.pipe = makePipe($('#tpCanvas'), v); cam.pipe.zoom = Math.max(ZMIN, Math.min(ZMAX, S.settings.zoom || 1));
+  const v = $('#tpVideo'); v.srcObject = stream; $('#tpScrim').hidden = false;
   tp.el.classList.add('cam'); $('#tgCam').setAttribute('aria-pressed', 'true');
-  setZoom(cam.pipe.zoom);
+  try { await v.play(); } catch {}
+  if (isDirect()) { $('#tpCanvas').hidden = true; cam.pipe = null; syncCamUI(); }
+  else {
+    $('#tpCanvas').hidden = false; applyOut();
+    cam.pipe = makePipe($('#tpCanvas'), v); cam.pipe.zoom = Math.max(ZMIN, Math.min(ZMAX, S.settings.zoom || 1));
+    setZoom(cam.pipe.zoom);
+  }
   return true;
 }
 function stopCam() {
@@ -1177,23 +1214,31 @@ async function startRec() {
 function beginRecording() {
   const stream = tp.stream;
   if (!stream || stream.getTracks().some(t => t.readyState !== 'live')) { recFail('Kamera atau mikrofon terputus sebelum rekaman dimulai.', 'Track tidak aktif'); pauseTP(); return; }
-  const cv = $('#tpCanvas');
-  if (!cam.pipe || !cv.captureStream) { recFail('Browser ini tidak bisa merekam dari kanvas.', 'canvas.captureStream tidak tersedia'); pauseTP(); return; }
-  cam.pipe.draw();
-  let made, cs, out;
-  try {
-    cs = cv.captureStream(30);
-    out = new MediaStream([...cs.getVideoTracks(), ...stream.getAudioTracks()]);
-    made = newRecorder(out);
-  } catch (e) { if (cs) cs.getTracks().forEach(t => t.stop()); recFail('Perekam video tidak bisa dibuat di browser ini.', errText(e)); pauseTP(); return; }
+  const direct = isDirect();
+  let made, cs = null, out = stream;
+  if (!direct) {
+    const cv = $('#tpCanvas');
+    if (!cam.pipe || !cv.captureStream) { recFail('Browser ini tidak bisa merekam dari kanvas. Pilih Mode Ringan di Atur.', 'canvas.captureStream tidak tersedia'); pauseTP(); return; }
+    cam.pipe.draw();
+    try {
+      cs = cv.captureStream(0); let vt = cs.getVideoTracks()[0];
+      if (!vt || typeof vt.requestFrame !== 'function') { cs.getTracks().forEach(t => t.stop()); cs = cv.captureStream(30); vt = null; }
+      out = new MediaStream([...cs.getVideoTracks(), ...stream.getAudioTracks()]);
+      cam.pipe.cap = vt; if (vt) { try { vt.requestFrame(); } catch {} }
+    } catch (e) { if (cs) cs.getTracks().forEach(t => t.stop()); recFail('Perekam video tidak bisa dibuat di browser ini.', errText(e)); pauseTP(); return; }
+  }
+  try { made = newRecorder(out); }
+  catch (e) { if (cs) cs.getTracks().forEach(t => t.stop()); if (cam.pipe) cam.pipe.cap = null; recFail('Perekam video tidak bisa dibuat di browser ini.', errText(e)); pauseTP(); return; }
   const rec = made.rec;
-  const job = { rec, cs, chunks: [], err: null, done: false, start: performance.now(), dur: 0, mime: made.mime };
+  const job = { rec, cs, chunks: [], err: null, done: false, start: performance.now(), dur: 0, mime: made.mime, wd: 0 };
   rec.ondataavailable = e => { if (e.data && e.data.size) job.chunks.push(e.data); };
   rec.onerror = e => { job.err = (e && e.error) || e || new Error('Perekam melaporkan galat'); if (tp.rec === job) stopRec(); };
   rec.onstop = () => finishRec(job);
   try { rec.start(); }
-  catch (e) { recFail('Perekaman tidak bisa dimulai.', errText(e)); pauseTP(); return; }
+  catch (e) { if (cs) cs.getTracks().forEach(t => t.stop()); if (cam.pipe) cam.pipe.cap = null; recFail('Perekaman tidak bisa dimulai.', errText(e)); pauseTP(); return; }
   tp.rec = job; tp.recStart = job.start;
+  try { localStorage.setItem('bacakamera.rec', String(Date.now())); } catch {}  // penanda: bila aplikasi mati mendadak, peluncuran berikutnya beralih ke Mode Ringan
+  if (!direct) startWatch(job);
   tp.el.classList.add('recording'); $('#tgRec').setAttribute('aria-pressed', 'true');
 }
 function stopRec() {
@@ -1209,6 +1254,8 @@ function stopRec() {
 }
 async function finishRec(job, extraErr) {
   if (job.done) return; job.done = true;
+  clearInterval(job.wd); try { localStorage.removeItem('bacakamera.rec'); } catch {}
+  if (cam.pipe) cam.pipe.cap = null;
   if (job.cs) job.cs.getTracks().forEach(t => t.stop());
   const err = job.err || extraErr;
   if (!job.dur) job.dur = (performance.now() - job.start) / 1000;
@@ -1317,7 +1364,7 @@ $('#recList').addEventListener('click', async e => {
 });
 
 /* uji kamera & rekam */
-function testRecord(stream) {
+function testRecord(stream, ms = 3000) {
   return new Promise((res, rej) => {
     let made; try { made = newRecorder(stream); } catch (e) { return rej(e); }
     const rec = made.rec, chunks = []; let type = '';
@@ -1325,7 +1372,7 @@ function testRecord(stream) {
     rec.onerror = e => rej((e && e.error) || new Error('Perekam melaporkan galat'));
     rec.onstop = () => res({ size: chunks.reduce((n, c) => n + c.size, 0), type: type || rec.mimeType, chunks: chunks.length });
     try { rec.start(); } catch (e) { return rej(e); }
-    setTimeout(() => { try { rec.stop(); } catch (e) { rej(e); } }, 3000);
+    setTimeout(() => { try { rec.stop(); } catch (e) { rej(e); } }, ms);
   });
 }
 $('#btnDiag').onclick = async e => {
@@ -1340,21 +1387,34 @@ $('#btnDiag').onclick = async e => {
   try { stream = await openStream(); } catch (err) { log('Kamera GAGAL: ' + errText(err)); btn.disabled = false; return; }
   const t = stream.getVideoTracks()[0]; let st = {}; try { st = t.getSettings(); } catch {}
   log(`Sumber kamera: ${st.width}×${st.height} @ ${Math.round(st.frameRate || 0)} fps`);
-  log(`Hasil rekaman: ${outSize().join('×')} (rasio ${S.settings.camRatio}, zoom ${(S.settings.zoom || 1)}×)`);
+  log(`Pengaturan: mode ${isDirect() ? 'Ringan' : 'Fleksibel'}, rasio ${effRatio()}, ${S.settings.camRes}p → ${outSize().join('×')}`);
   log('Mikrofon: ' + (stream.getAudioTracks().length ? 'ada' : 'TIDAK ADA'));
   log('Kanvas captureStream: ' + (HTMLCanvasElement.prototype.captureStream ? 'ada' : 'TIDAK ADA'));
   const vid = document.createElement('video'); vid.muted = true; vid.playsInline = true; vid.srcObject = stream;
   vid.style.cssText = 'position:fixed;width:2px;height:2px;opacity:0;pointer-events:none'; document.body.appendChild(vid); try { await vid.play(); } catch {}
-  const cv = document.createElement('canvas'); cv.width = 360; cv.height = 640; cv.style.cssText = 'position:fixed;width:2px;height:2px;opacity:0;pointer-events:none'; document.body.appendChild(cv);
-  const pipe = makePipe(cv, vid); await new Promise(r => setTimeout(r, 400));
-  let testStream = stream;
-  if (cv.captureStream) { try { testStream = new MediaStream([...cv.captureStream(30).getVideoTracks(), ...stream.getAudioTracks()]); } catch (err) { log('Kanvas gagal: ' + errText(err)); } }
+  const rt = async (label, st2, ms) => {
+    log(`Uji rekam ${label} ${ms / 1000} detik…`);
+    try { const r = await testRecord(st2, ms); log(`  hasil: ${r.size} byte, ${r.type || 'tipe kosong'}, ${r.chunks} bagian → ${r.size > 20000 ? 'OK' : 'file terlalu kecil'}`); return r.size > 20000; }
+    catch (err) { log('  GAGAL: ' + errText(err)); return false; }
+  };
+  let okDirect = false, okCanvas = false;
   if (window.MediaRecorder) {
-    log('Uji rekam 3 detik…');
-    try { const r = await testRecord(testStream); log(`Hasil: ${r.size} byte, ${r.type || 'tipe kosong'}, ${r.chunks} bagian`); log(r.size > 20000 ? 'Perekaman: OK' : 'Perekaman: file terlalu kecil, ada masalah'); }
-    catch (err) { log('Perekaman GAGAL: ' + errText(err)); }
+    okDirect = await rt('langsung (Mode Ringan)', stream, 2000);
+    if (HTMLCanvasElement.prototype.captureStream) {
+      const [ow, oh] = outSize(), cv = document.createElement('canvas'); cv.width = ow; cv.height = oh; cv.style.cssText = 'position:fixed;width:2px;height:2px;opacity:0;pointer-events:none'; document.body.appendChild(cv);
+      const pipe = makePipe(cv, vid); await new Promise(r => setTimeout(r, 400));
+      try {
+        const cs = cv.captureStream(0), vt = cs.getVideoTracks()[0]; if (vt && vt.requestFrame) pipe.cap = vt;
+        const ts = new MediaStream([...cs.getVideoTracks(), ...stream.getAudioTracks()]); const n0 = pipe.n;
+        okCanvas = await rt(`lewat kanvas ${ow}×${oh} (Mode Fleksibel)`, ts, 3000);
+        log(`  kecepatan gambar kanvas: ±${Math.round((pipe.n - n0) / 3)} fps`);
+      } catch (err) { log('  Kanvas GAGAL: ' + errText(err)); }
+      pipe.stop(); cv.remove();
+    }
+    log(okCanvas ? 'Kesimpulan: kedua mode bisa dipakai.' : okDirect ? 'Kesimpulan: pakai Mode Ringan.' : 'Kesimpulan: perekaman di browser ini bermasalah, pakai Kamera iPhone bawaan.');
+    if (okDirect && !okCanvas) log('Perekaman: OK (Mode Ringan)'); else if (okCanvas) log('Perekaman: OK'); else log('Perekaman: GAGAL');
   }
-  pipe.stop(); cv.remove(); vid.remove(); stream.getTracks().forEach(x => x.stop()); btn.disabled = false;
+  vid.remove(); stream.getTracks().forEach(x => x.stop()); btn.disabled = false;
 };
 
 /* ================= mulai ================= */
@@ -1378,6 +1438,14 @@ if (!S.seeded) {
 bindSettings();
 ideas = offlineIdeas(params()); renderIdeas();
 renderEngine(); syncCamUI(); renderRecs();
+(function () {
+  let died = false; try { died = !!localStorage.getItem('bacakamera.rec'); localStorage.removeItem('bacakamera.rec'); } catch {}
+  if (!died) return;
+  S.settings.camMode = 'direct'; if (!DIRECT_OK.includes(S.settings.camRatio)) S.settings.camRatio = '3:4';
+  if (String(S.settings.camRes) === '1080') S.settings.camRes = '720';
+  save(); syncCamUI();
+  recFail('Aplikasi sempat berhenti mendadak saat merekam, kemungkinan karena terlalu berat. Saya pindahkan ke Mode Ringan (rekam langsung dari kamera, maksimal 720p) supaya lancar. Anda bisa mengubahnya di Atur › Kamera & rekaman.', '');
+})();
 
 // Claude di dalam viewer Claude (artifact): ide AI tanpa API key
 if (window.claude && typeof window.claude.use === 'function') {
